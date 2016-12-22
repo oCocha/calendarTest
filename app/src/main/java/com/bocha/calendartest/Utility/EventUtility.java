@@ -19,7 +19,7 @@ public class EventUtility {
     public static ArrayList<String> endDates = new ArrayList<String>();
     public static ArrayList<String> descriptions = new ArrayList<String>();
 
-    public static ArrayList<String> readCalendarEvent(Context context) {
+    public static ArrayList<ArrayList> readCalendarEvent(Context context) {
         Cursor cursor = context.getContentResolver()
                 .query(
                         Uri.parse("content://com.android.calendar/events"),
@@ -37,7 +37,7 @@ public class EventUtility {
         descriptions.clear();
         for (int i = 0; i < CNames.length; i++) {
 
-            /**Save the event data in sepcific arraylists*/
+            /**Save the event data in separate arraylists*/
             nameOfEvent.add(cursor.getString(1));
             startDates.add(getDate(Long.parseLong(cursor.getString(3))));
             endDates.add(getDate(Long.parseLong(cursor.getString(4))));
@@ -56,7 +56,7 @@ public class EventUtility {
             cursor.moveToNext();
 
         }
-        return nameOfEvent;
+        return eventList;
     }
 
     public static String getDate(long milliSeconds) {
