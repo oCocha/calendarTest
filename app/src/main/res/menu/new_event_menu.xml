@@ -11,11 +11,11 @@
         android:icon="@android:drawable/ic_menu_info_details"
         android:title="Add Task"
         app:showAsAction="always"
-        android:checked="false"/>
+        android:checked="true"/>
     <item
         android:id="@+id/activity_overview_events"
         android:icon="@android:drawable/ic_menu_my_calendar"
         android:title="Add Task"
         app:showAsAction="always"
-        android:checked="true"/>
+        android:checked="false"/>
 </menu>

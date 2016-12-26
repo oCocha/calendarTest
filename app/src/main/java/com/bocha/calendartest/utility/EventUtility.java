@@ -1,4 +1,4 @@
-package com.bocha.calendartest.Utility;
+package com.bocha.calendartest.utility;
 
 import android.content.Context;
 import android.database.Cursor;

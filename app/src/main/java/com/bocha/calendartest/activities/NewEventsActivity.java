@@ -1,4 +1,4 @@
-package com.bocha.calendartest;
+package com.bocha.calendartest.activities;
 
 import android.Manifest;
 import android.content.ContentResolver;
@@ -7,16 +7,13 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-
-import java.util.Calendar;
-
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.provider.CalendarContract;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -26,29 +23,70 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.bocha.calendartest.activities.NewEventsActivity;
+import com.bocha.calendartest.MainActivity;
+import com.bocha.calendartest.R;
+import com.bocha.calendartest.adapter.eventAdapter;
+import com.bocha.calendartest.data.Event;
 import com.bocha.calendartest.utility.EventUtility;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.GregorianCalendar;
 
-public class MainActivity extends AppCompatActivity {
+public class NewEventsActivity extends AppCompatActivity {
 
-    private static final String TAG = "Main Menu";
+    private static final String TAG = "New Events";
 
     private ListView myEventListView;
-    private ArrayAdapter<String> myAdapter;
+    private eventAdapter myAdapter;
     private ArrayList<ArrayList> eventList;
-    private ArrayList<String> eventNameList;
+
+    /**Test event data*/
+    private ArrayList<int[]> eventStartDate = new ArrayList<>();
+    private ArrayList<int[]> eventEndDate = new ArrayList<>();
+    private ArrayList<String> eventName = new ArrayList<>();
+    private ArrayList<String> eventDescription = new ArrayList<>();
+    private ArrayList<Event> testEventList = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        myEventListView = (ListView) findViewById(R.id.list_event);
+        setContentView(R.layout.activity_new_events);
+        myEventListView = (ListView) findViewById(R.id.list_new_events);
 
-        readEvents();
-        updateUI();
+        setupNewEventsData();
+        setupNewEventsList();
+    }
+
+    private void setupNewEventsData() {
+        /**Setup the test start date*/
+        int[] tempStartDate1 = {2016, 11, 24, 7, 30};
+        eventStartDate.add(tempStartDate1);
+        int[] tempStartDate2 = {2016, 11, 27, 7, 30};
+        eventStartDate.add(tempStartDate2);
+        int[] tempStartDate3 = {2016, 11, 20, 7, 30};
+        eventStartDate.add(tempStartDate3);
+        /**Setup the test end date*/
+        int[] tempEndDate1 = {2016, 11, 24, 9, 30};
+        eventEndDate.add(tempEndDate1);
+        int[] tempEndDate2 = {2016, 11, 27, 11, 30};
+        eventEndDate.add(tempEndDate2);
+        int[] tempEndDate3 = {2016, 11, 20, 15, 30};
+        eventEndDate.add(tempEndDate3);
+        /**Setup the test names*/
+        eventName.add("Test event 1");
+        eventName.add("Test event 2");
+        eventName.add("Test event 3");
+        /**Setup the test descriptions*/
+        eventDescription.add("This is the description for test event 1");
+        eventDescription.add("This is the description for test event 2");
+        eventDescription.add("This is the description for test event 3");
+
+        /**Setup the test data events*/
+        testEventList.add(new Event(tempStartDate1, tempEndDate1, eventName.get(0), eventDescription.get(0)));
+        testEventList.add(new Event(tempStartDate2, tempEndDate2, eventName.get(1), eventDescription.get(1)));
+        testEventList.add(new Event(tempStartDate3, tempEndDate3, eventName.get(2), eventDescription.get(2)));
     }
 
     private void readEvents() {
@@ -59,47 +97,27 @@ public class MainActivity extends AppCompatActivity {
             Log.v(TAG, "Calendar read Permission granted");
         }
         eventList = EventUtility.readCalendarEvent(this);
-        /*
-        Log.v(TAG, "Events fetched");
-        for(int i = 0, j = eventList.size(); i < j; i++){
-            Log.v(TAG, "Event" + i + " Name: " + eventList.get(i).get(0));
-            Log.v(TAG, "Event" + i + " Startdate: " + eventList.get(i).get(1));
-            Log.v(TAG, "Event" + i + " Enddate: " + eventList.get(i).get(2));
-            Log.v(TAG, "Event" + i + " Description: " + eventList.get(i).get(3));
-        }*/
     }
 
     /**Delay when adding a new event to the calendar
      * -> The list doesnt update correctly sometimes*/
-    private void updateUI() {
+    private void setupNewEventsList() {
         readEvents();
 
-        ArrayList<String> taskList = new ArrayList<>();
-
-        for (int i = 0, l = eventList.size(); i < l; i++) {
-            taskList.add((String) eventList.get(i).get(0));
-        }
         if (myAdapter == null) {
-            myAdapter = new ArrayAdapter<>(this,
-                    R.layout.item_event,
-                    R.id.event_title,
-                    taskList);
+            myAdapter = new eventAdapter(this,
+                    R.layout.item_new_event,
+                    R.id.new_event_title,
+                    R.id.new_event_description,
+                    testEventList);
             myEventListView.setAdapter(myAdapter);
             Log.v(TAG, "New adapter");
         } else {
             myAdapter.clear();
-            myAdapter.addAll(taskList);
+            myAdapter.addAll(eventName);
             myAdapter.notifyDataSetChanged();
             Log.v(TAG, "NotifyDataSetChanged");
         }
-    }
-
-    public void deleteEvent(View view) {
-        View parent = (View) view.getParent();
-        TextView taskTextView = (TextView) parent.findViewById(R.id.event_title);
-        String task = String.valueOf(taskTextView.getText());
-
-        updateUI();
     }
 
     @Override
@@ -124,39 +142,20 @@ public class MainActivity extends AppCompatActivity {
 
                                 addEventAutomatically(event);
                                 //addEventManually(event);
-
-                                updateUI();
                             }
                         })
                         .setNegativeButton("Decline", null)
                         .create();
                 dialog.show();
                 return true;
-            case R.id.activity_new_events:
-                Intent intent = new Intent(this, NewEventsActivity.class);
+            case R.id.activity_overview_events:
+                Intent intent = new Intent(this, MainActivity.class);
                 startActivity(intent);
                 return true;
 
             default:
                 return super.onOptionsItemSelected(item);
         }
-    }
-
-    /**Add an calendar event, the user enters the event data manually*/
-    private void addEventManually(String event) {
-        Intent intent = new Intent(Intent.ACTION_EDIT);
-        intent.setType("vnd.android.cursor.item/event");
-        GregorianCalendar calDate = new GregorianCalendar(2016, 11, 27);
-        intent.putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME,
-                calDate.getTimeInMillis());
-        intent.putExtra(CalendarContract.EXTRA_EVENT_END_TIME,
-                calDate.getTimeInMillis());
-        intent.putExtra(CalendarContract.EXTRA_EVENT_ALL_DAY, true);
-        intent.putExtra(CalendarContract.Events.TITLE, event);
-        intent.putExtra(CalendarContract.Events.DESCRIPTION, "This is a sample description");
-        intent.putExtra(CalendarContract.Events.EVENT_LOCATION, "My Guest House");
-        intent.putExtra(CalendarContract.Events.RRULE, false);
-        startActivity(intent);
     }
 
     /**Add an calendar event, event data is entered automatically*/
@@ -243,7 +242,6 @@ public class MainActivity extends AppCompatActivity {
             //
             //
         }
-        updateUI();
     }
 
     /**Check whether the new event collides with old events
