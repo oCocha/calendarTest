@@ -18,6 +18,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
@@ -57,6 +58,25 @@ public class NewEventsActivity extends AppCompatActivity {
 
         setupNewEventsData();
         setupNewEventsList();
+        setupNewEventsClickListener();
+    }
+
+    private void setupNewEventsClickListener() {
+        myEventListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3) {
+
+                Event event = (Event)myEventListView.getItemAtPosition(position);
+                addEventAutomatically(event);
+                Log.v(TAG, "Clicked: " + event.getEventName());
+                /* write you handling code like...
+                String st = "sdcard/";
+                File f = new File(st+o.toString());
+                // do whatever u want to do with 'f' File object
+                */
+            }
+        });
     }
 
     private void setupNewEventsData() {
@@ -140,7 +160,7 @@ public class NewEventsActivity extends AppCompatActivity {
                             public void onClick(DialogInterface dialog, int which) {
                                 String event = String.valueOf(eventEditText.getText());
 
-                                addEventAutomatically(event);
+                                //addEventAutomatically(event);
                                 //addEventManually(event);
                             }
                         })
@@ -159,16 +179,16 @@ public class NewEventsActivity extends AppCompatActivity {
     }
 
     /**Add an calendar event, event data is entered automatically*/
-    private void addEventAutomatically(String event) {
+    private void addEventAutomatically(Event event) {
         long calID = 1;
         long startMillis = 0;
         long endMillis = 0;
         Calendar beginTime = null;
         beginTime = Calendar.getInstance();
-        beginTime.set(2016, 11, 24, 7, 30);
+        beginTime.set(event.getEventStartDate()[0], event.getEventStartDate()[1], event.getEventStartDate()[2], event.getEventStartDate()[3], event.getEventStartDate()[4]);
         startMillis = beginTime.getTimeInMillis();
         Calendar endTime = Calendar.getInstance();
-        endTime.set(2016, 11, 24, 8, 45);
+        endTime.set(event.getEventEndDate()[0], event.getEventEndDate()[1], event.getEventEndDate()[2], event.getEventEndDate()[3], event.getEventEndDate()[4]);
         endMillis = endTime.getTimeInMillis();
 
         ArrayList<ArrayList> collidingEvents = checkEventCollision(startMillis, endMillis);
@@ -178,8 +198,8 @@ public class NewEventsActivity extends AppCompatActivity {
         ContentValues values = new ContentValues();
         values.put(CalendarContract.Events.DTSTART, startMillis);
         values.put(CalendarContract.Events.DTEND, endMillis);
-        values.put(CalendarContract.Events.TITLE, event);
-        values.put(CalendarContract.Events.DESCRIPTION, "Event for testing purposes");
+        values.put(CalendarContract.Events.TITLE, event.getEventName());
+        values.put(CalendarContract.Events.DESCRIPTION, event.getEventDescription());
         values.put(CalendarContract.Events.CALENDAR_ID, calID);
         values.put(CalendarContract.Events.EVENT_TIMEZONE, "Europe/Berlin");
 

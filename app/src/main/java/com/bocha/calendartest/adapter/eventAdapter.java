@@ -59,8 +59,6 @@ public class eventAdapter extends ArrayAdapter {
             TextView td = (TextView) v.findViewById(R.id.new_event_description);
             TextView ts = (TextView) v.findViewById(R.id.new_event_start);
             TextView te = (TextView) v.findViewById(R.id.new_event_end);
-            //TextView bt = (TextView) v.findViewById(R.id.bottomtext);
-            //TextView btd = (TextView) v.findViewById(R.id.desctext);
 
             // check to see if each individual textview is null.
             // if not, assign some text!
@@ -75,13 +73,7 @@ public class eventAdapter extends ArrayAdapter {
             }
             if (te != null){
                 te.setText(" - " + dateToString(i.getEventEndDate()));
-            }/*
-            if (bt != null){
-                bt.setText("Details: ");
             }
-            if (btd != null){
-                btd.setText(i.getDetails());
-            }*/
         }
 
         // the view must be returned to our activity
