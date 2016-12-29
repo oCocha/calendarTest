@@ -97,7 +97,28 @@ public class MainActivity extends AppCompatActivity {
     public void deleteEvent(View view) {
         View parent = (View) view.getParent();
         TextView taskTextView = (TextView) parent.findViewById(R.id.event_title);
-        String task = String.valueOf(taskTextView.getText());
+        String eventTitle = String.valueOf(taskTextView.getText());
+
+        final Integer eventId = EventUtility.getEventIdByTitle(this, eventTitle);
+        Log.v(TAG, ""+eventId);
+
+        final Context context = this;
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("Delete event")
+                .setMessage("Delete the event '" + eventTitle + "' with event id: " + eventId + "?")
+                .setPositiveButton("Accept", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        EventUtility.deleteEventById(context, eventId);
+
+                        updateUI();
+                    }
+                })
+                .setNegativeButton("Decline", null)
+                .create();
+        dialog.show();
 
         updateUI();
     }
