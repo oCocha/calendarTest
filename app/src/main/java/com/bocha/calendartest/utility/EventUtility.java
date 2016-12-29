@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.provider.CalendarContract;
 import android.util.Log;
+import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -115,17 +116,31 @@ public class EventUtility {
             } while (cursor.moveToNext());
             cursor.close();
         }
+        Log.v(TAG, "Event: "+eventtitle+" got Id: "+result);
         return result;
     }
 
     public static void deleteEventById(Context context, Integer eventId) {
         Log.v(TAG, "Delete event: "+eventId);
         ContentResolver cr = context.getContentResolver();
-        ContentValues values = new ContentValues();
         Uri deleteUri = null;
         deleteUri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId);
-        int rows = context.getContentResolver().delete(deleteUri, null, null);
+        int rows = cr.delete(deleteUri, null, null);
         Log.i(TAG, "Rows deleted: " + rows);
+        Toast toast = Toast.makeText(context, "Event " + eventId + "deleted.", Toast.LENGTH_SHORT);
+        toast.show();
 
+    }
+
+    public static void updateEventTitle(Context context, String eventTitle, Integer eventId) {
+        ContentResolver cr = context.getContentResolver();
+        ContentValues values = new ContentValues();
+        Uri updateUri = null;
+        // The new title for the event
+        values.put(CalendarContract.Events.TITLE, eventTitle);
+        Log.v(TAG, "New title: " + eventTitle + " ID: " +eventId);
+        updateUri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId);
+        int rows = cr.update(updateUri, values, null, null);
+        Log.v(TAG, "Rows updated: " + rows);
     }
 }

@@ -61,6 +61,7 @@ public class NewEventsActivity extends AppCompatActivity {
         setupNewEventsClickListener();
     }
 
+    /**Setup an click listener for the listview elements*/
     private void setupNewEventsClickListener() {
         myEventListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 

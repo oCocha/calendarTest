@@ -21,10 +21,12 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bocha.calendartest.activities.NewEventsActivity;
 import com.bocha.calendartest.utility.EventUtility;
@@ -92,6 +94,39 @@ public class MainActivity extends AppCompatActivity {
             myAdapter.notifyDataSetChanged();
             Log.v(TAG, "NotifyDataSetChanged");
         }
+        setupOnClickListener();
+    }
+
+    private void setupOnClickListener() {
+        /**Setup an click listener for the listview elements*/
+        final Context context = this;
+        myEventListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3) {
+                final String eventTitle = myEventListView.getItemAtPosition(position).toString();
+                Log.v(TAG, "Update: " + eventTitle);
+                final EditText eventEditText = new EditText(context);
+                AlertDialog dialog = new AlertDialog.Builder(context)
+                        .setTitle("Update event title")
+                        .setMessage("What should the new event title be?")
+                        .setView(eventEditText)
+                        .setPositiveButton("Accept", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                String newTitle = String.valueOf(eventEditText.getText());
+                                Integer eventId = EventUtility.getEventIdByTitle(context, eventTitle);
+                                Log.v(TAG, "Change title to: "+newTitle);
+                                EventUtility.updateEventTitle(context, newTitle, eventId);
+
+                                updateUI();
+                            }
+                        })
+                        .setNegativeButton("Decline", null)
+                        .create();
+                dialog.show();
+            }
+        });
     }
 
     public void deleteEvent(View view) {
@@ -249,6 +284,8 @@ public class MainActivity extends AppCompatActivity {
                                 return;
                             }
                             Uri uri = cr.insert(CalendarContract.Events.CONTENT_URI, eventValues);
+                            Toast toast = Toast.makeText(context, "Event " + eventValues.get(CalendarContract.Events.TITLE) + "inserted.", Toast.LENGTH_SHORT);
+                            toast.show();
                         }
                     })
                     .setNegativeButton("Decline", null)
@@ -259,6 +296,8 @@ public class MainActivity extends AppCompatActivity {
             Log.v(TAG,"Event added");
             // get the event ID that is the last element in the Uri
             long eventID = Long.parseLong(uri.getLastPathSegment());
+            Toast toast = Toast.makeText(this, "Event " + eventValues.get(CalendarContract.Events.TITLE) + "inserted.", Toast.LENGTH_SHORT);
+            toast.show();
             //
             // ... do something with event ID
             //
