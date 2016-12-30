@@ -28,7 +28,9 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bocha.calendartest.activities.CalendarActivity;
 import com.bocha.calendartest.activities.NewEventsActivity;
+import com.bocha.calendartest.data.Event;
 import com.bocha.calendartest.utility.EventUtility;
 
 import java.util.ArrayList;
@@ -48,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         myEventListView = (ListView) findViewById(R.id.list_event);
+        Log.v(TAG, "LIVESTVIEW: "+myEventListView);
 
         readEvents();
         updateUI();
@@ -58,17 +61,17 @@ public class MainActivity extends AppCompatActivity {
             eventList.clear();
         }
         if (isCalendarReadPermissionGranted()) {
-            Log.v(TAG, "Calendar read Permission granted");
+            Log.v(TAG, "Calendar read Permission granted if");
+            eventList = EventUtility.readCalendarEvent(this);
+        }else{
+            requestReadCalendarPermission();
+            eventList = EventUtility.readCalendarEvent(this);
         }
-        eventList = EventUtility.readCalendarEvent(this);
-        /*
-        Log.v(TAG, "Events fetched");
-        for(int i = 0, j = eventList.size(); i < j; i++){
-            Log.v(TAG, "Event" + i + " Name: " + eventList.get(i).get(0));
-            Log.v(TAG, "Event" + i + " Startdate: " + eventList.get(i).get(1));
-            Log.v(TAG, "Event" + i + " Enddate: " + eventList.get(i).get(2));
-            Log.v(TAG, "Event" + i + " Description: " + eventList.get(i).get(3));
-        }*/
+        Log.v(TAG, "eventlist size: "+eventList.size());
+    }
+
+    private void requestReadCalendarPermission() {
+        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_CALENDAR}, 1);
     }
 
     /**Delay when adding a new event to the calendar
@@ -97,11 +100,10 @@ public class MainActivity extends AppCompatActivity {
         setupOnClickListener();
     }
 
+    /**Setup an click listener for the listview elements*/
     private void setupOnClickListener() {
-        /**Setup an click listener for the listview elements*/
         final Context context = this;
         myEventListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-
             @Override
             public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3) {
                 final String eventTitle = myEventListView.getItemAtPosition(position).toString();
@@ -129,6 +131,8 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**Delete the according calendar event when the delete button is clicked
+     * To delete the event the EventUtility class is used*/
     public void deleteEvent(View view) {
         View parent = (View) view.getParent();
         TextView taskTextView = (TextView) parent.findViewById(R.id.event_title);
@@ -176,10 +180,8 @@ public class MainActivity extends AppCompatActivity {
                         .setPositiveButton("Accept", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
-                                String event = String.valueOf(eventEditText.getText());
 
-                                addEventAutomatically(event);
-                                //addEventManually(event);
+                                addEvent(String.valueOf(eventEditText.getText()));
 
                                 updateUI();
                             }
@@ -189,8 +191,12 @@ public class MainActivity extends AppCompatActivity {
                 dialog.show();
                 return true;
             case R.id.activity_new_events:
-                Intent intent = new Intent(this, NewEventsActivity.class);
-                startActivity(intent);
+                Intent listIntent = new Intent(this, NewEventsActivity.class);
+                startActivity(listIntent);
+                return true;
+            case R.id.activity_events_calendar:
+                Intent calIntent = new Intent(this, CalendarActivity.class);
+                startActivity(calIntent);
                 return true;
 
             default:
@@ -198,111 +204,15 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /**Add an calendar event, the user enters the event data manually*/
-    private void addEventManually(String event) {
-        Intent intent = new Intent(Intent.ACTION_EDIT);
-        intent.setType("vnd.android.cursor.item/event");
-        GregorianCalendar calDate = new GregorianCalendar(2016, 11, 27);
-        intent.putExtra(CalendarContract.EXTRA_EVENT_BEGIN_TIME,
-                calDate.getTimeInMillis());
-        intent.putExtra(CalendarContract.EXTRA_EVENT_END_TIME,
-                calDate.getTimeInMillis());
-        intent.putExtra(CalendarContract.EXTRA_EVENT_ALL_DAY, true);
-        intent.putExtra(CalendarContract.Events.TITLE, event);
-        intent.putExtra(CalendarContract.Events.DESCRIPTION, "This is a sample description");
-        intent.putExtra(CalendarContract.Events.EVENT_LOCATION, "My Guest House");
-        intent.putExtra(CalendarContract.Events.RRULE, false);
-        startActivity(intent);
-    }
+    /**Add the event using the EventUtility class*/
+    private void addEvent(String eventTitle) {
+        int[] startDate = {2016, 11, 24, 7, 30};
+        int[] endDate = {2016, 11, 24, 14, 30};
 
-    /**Add an calendar event, event data is entered automatically*/
-    private void addEventAutomatically(String event) {
-        long calID = 1;
-        long startMillis = 0;
-        long endMillis = 0;
-        Calendar beginTime = null;
-        beginTime = Calendar.getInstance();
-        beginTime.set(2016, 11, 24, 7, 30);
-        startMillis = beginTime.getTimeInMillis();
-        Calendar endTime = Calendar.getInstance();
-        endTime.set(2016, 11, 24, 8, 45);
-        endMillis = endTime.getTimeInMillis();
+        Event event = new Event(startDate, endDate, eventTitle, "Descrption for " + eventTitle);
 
-        ArrayList<ArrayList> collidingEvents = checkEventCollision(startMillis, endMillis);
+        EventUtility.addEvent(MainActivity.this, event);
 
-        /**Set the event data*/
-        final ContentResolver cr = getContentResolver();
-        ContentValues values = new ContentValues();
-        values.put(CalendarContract.Events.DTSTART, startMillis);
-        values.put(CalendarContract.Events.DTEND, endMillis);
-        values.put(CalendarContract.Events.TITLE, event);
-        values.put(CalendarContract.Events.DESCRIPTION, "Event for testing purposes");
-        values.put(CalendarContract.Events.CALENDAR_ID, calID);
-        values.put(CalendarContract.Events.EVENT_TIMEZONE, "Europe/Berlin");
-
-        /**Save the necessary event data*/
-        final ContentValues eventValues = values;
-        final Context context = this;
-
-        if (isCalendarWritePermissionGranted()) {
-            Log.v(TAG, "Permission is granted");
-        }
-
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            Log.v(TAG, "Permission not granted");
-            return;
-        }
-
-        Log.v(TAG, "Size: " + collidingEvents.size());
-        if (collidingEvents.size() != 0) {
-            String collisionNames = new String();
-            for (int i = 0, j = collidingEvents.size(); i < j; i++) {
-                collisionNames = collisionNames + " " + collidingEvents.get(i).get(0);
-            }
-
-            AlertDialog dialog = new AlertDialog.Builder(this)
-                    .setTitle("New event collides with: " + collisionNames)
-                    .setMessage("Create new event?")
-                    .setPositiveButton("Accept", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.WRITE_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
-                                // TODO: Consider calling
-                                //    ActivityCompat#requestPermissions
-                                // here to request the missing permissions, and then overriding
-                                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                                //                                          int[] grantResults)
-                                // to handle the case where the user grants the permission. See the documentation
-                                // for ActivityCompat#requestPermissions for more details.
-                                return;
-                            }
-                            Uri uri = cr.insert(CalendarContract.Events.CONTENT_URI, eventValues);
-                            Toast toast = Toast.makeText(context, "Event " + eventValues.get(CalendarContract.Events.TITLE) + "inserted.", Toast.LENGTH_SHORT);
-                            toast.show();
-                        }
-                    })
-                    .setNegativeButton("Decline", null)
-                    .create();
-            dialog.show();
-        }else{
-            Uri uri = cr.insert(CalendarContract.Events.CONTENT_URI, values);
-            Log.v(TAG,"Event added");
-            // get the event ID that is the last element in the Uri
-            long eventID = Long.parseLong(uri.getLastPathSegment());
-            Toast toast = Toast.makeText(this, "Event " + eventValues.get(CalendarContract.Events.TITLE) + "inserted.", Toast.LENGTH_SHORT);
-            toast.show();
-            //
-            // ... do something with event ID
-            //
-            //
-        }
         updateUI();
     }
 
@@ -351,7 +261,7 @@ public class MainActivity extends AppCompatActivity {
             } else {
 
                 Log.v(TAG,"Permission is revoked");
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_CALENDAR}, 1);
+                //ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_CALENDAR}, 1);
                 return false;
             }
         }

@@ -67,15 +67,10 @@ public class NewEventsActivity extends AppCompatActivity {
 
             @Override
             public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3) {
-
                 Event event = (Event)myEventListView.getItemAtPosition(position);
-                addEventAutomatically(event);
+                readEvents();
+                EventUtility.addEvent(NewEventsActivity.this, event);
                 Log.v(TAG, "Clicked: " + event.getEventName());
-                /* write you handling code like...
-                String st = "sdcard/";
-                File f = new File(st+o.toString());
-                // do whatever u want to do with 'f' File object
-                */
             }
         });
     }
@@ -117,7 +112,7 @@ public class NewEventsActivity extends AppCompatActivity {
         if (isCalendarReadPermissionGranted()) {
             Log.v(TAG, "Calendar read Permission granted");
         }
-        eventList = EventUtility.readCalendarEvent(this);
+        eventList = EventUtility.readCalendarEvent(NewEventsActivity.this);
     }
 
     /**Delay when adding a new event to the calendar
@@ -143,35 +138,20 @@ public class NewEventsActivity extends AppCompatActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main_menu, menu);
+        getMenuInflater().inflate(R.menu.new_event_menu, menu);
         return super.onCreateOptionsMenu(menu);
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         switch (item.getItemId()) {
-            case R.id.action_add_event:
-                final EditText eventEditText = new EditText(this);
-                AlertDialog dialog = new AlertDialog.Builder(this)
-                        .setTitle("New event")
-                        .setMessage("Accept the event?")
-                        .setView(eventEditText)
-                        .setPositiveButton("Accept", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                String event = String.valueOf(eventEditText.getText());
-
-                                //addEventAutomatically(event);
-                                //addEventManually(event);
-                            }
-                        })
-                        .setNegativeButton("Decline", null)
-                        .create();
-                dialog.show();
+            case R.id.activity_events_lists:
+                Intent mainIntent = new Intent(this, MainActivity.class);
+                startActivity(mainIntent);
                 return true;
-            case R.id.activity_overview_events:
-                Intent intent = new Intent(this, MainActivity.class);
-                startActivity(intent);
+            case R.id.activity_events_calendar:
+                Intent calIntent = new Intent(this, CalendarActivity.class);
+                startActivity(calIntent);
                 return true;
 
             default:
@@ -179,7 +159,7 @@ public class NewEventsActivity extends AppCompatActivity {
         }
     }
 
-    /**Add an calendar event, event data is entered automatically*/
+    /**Add an calendar event, event data is entered automatically*//*
     private void addEventAutomatically(Event event) {
         long calID = 1;
         long startMillis = 0;
@@ -192,9 +172,9 @@ public class NewEventsActivity extends AppCompatActivity {
         endTime.set(event.getEventEndDate()[0], event.getEventEndDate()[1], event.getEventEndDate()[2], event.getEventEndDate()[3], event.getEventEndDate()[4]);
         endMillis = endTime.getTimeInMillis();
 
-        ArrayList<ArrayList> collidingEvents = checkEventCollision(startMillis, endMillis);
+        ArrayList<ArrayList> collidingEvents = EventUtility.checkEventCollision(startMillis, endMillis);
 
-        /**Set the event data*/
+        /**Set the event data*//*
         final ContentResolver cr = getContentResolver();
         ContentValues values = new ContentValues();
         values.put(CalendarContract.Events.DTSTART, startMillis);
@@ -204,7 +184,7 @@ public class NewEventsActivity extends AppCompatActivity {
         values.put(CalendarContract.Events.CALENDAR_ID, calID);
         values.put(CalendarContract.Events.EVENT_TIMEZONE, "Europe/Berlin");
 
-        /**Save the necessary event data*/
+        /**Save the necessary event data*//*
         final ContentValues eventValues = values;
         final Context context = this;
 
@@ -263,10 +243,10 @@ public class NewEventsActivity extends AppCompatActivity {
             //
             //
         }
-    }
+    }*/
 
     /**Check whether the new event collides with old events
-     * Ask the user if he wants to create the new event if collisions occur*/
+     * Ask the user if he wants to create the new event if collisions occur*//*
     private ArrayList<ArrayList> checkEventCollision(long startMillis, long endMillis) {
         ArrayList<ArrayList> collidingEvents = new ArrayList<>();
         readEvents();
@@ -279,10 +259,10 @@ public class NewEventsActivity extends AppCompatActivity {
             }
         }
         return collidingEvents;
-    }
+    }*/
 
     /**Check whether the app can write in the calendar device app
-     * Request the necessary permisison if not*/
+     * Request the necessary permisison if not*//*
     public  boolean isCalendarWritePermissionGranted() {
         if (Build.VERSION.SDK_INT >= 23) {
             if (checkSelfPermission(Manifest.permission.WRITE_CALENDAR)
@@ -298,7 +278,7 @@ public class NewEventsActivity extends AppCompatActivity {
         else { //permission is automatically granted on sdk<23 upon installation
             return true;
         }
-    }
+    }*/
 
     /**Check whether the app can write in the calendar device app
      * Request the necessary permisison if not*/
@@ -319,6 +299,7 @@ public class NewEventsActivity extends AppCompatActivity {
         }
     }
 
+    /*
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -326,5 +307,5 @@ public class NewEventsActivity extends AppCompatActivity {
             Log.v(TAG,"Permission: "+permissions[0]+ "was "+grantResults[0]);
             //resume tasks needing this permission
         }
-    }
+    }*/
 }

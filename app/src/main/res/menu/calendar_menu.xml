@@ -11,7 +11,7 @@
         android:icon="@android:drawable/ic_menu_info_details"
         android:title="Add Task"
         app:showAsAction="always"
-        android:checked="true"/>
+        android:checked="false"/>
     <item
         android:id="@+id/activity_events_lists"
         android:icon="@android:drawable/ic_menu_gallery"
@@ -23,5 +23,5 @@
         android:icon="@android:drawable/ic_menu_my_calendar"
         android:title="Add Task"
         app:showAsAction="always"
-        android:checked="false"/>
+        android:checked="true"/>
 </menu>

@@ -19,6 +19,8 @@
         </activity>
         <activity android:name=".activities.NewEventsActivity">
         </activity>
+        <activity android:name=".activities.CalendarActivity">
+        </activity>
     </application>
 
 </manifest>

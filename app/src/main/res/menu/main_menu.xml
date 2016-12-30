@@ -13,9 +13,15 @@
         app:showAsAction="always"
         android:checked="false"/>
     <item
-        android:id="@+id/activity_overview_events"
-        android:icon="@android:drawable/ic_menu_my_calendar"
+        android:id="@+id/activity_events_lists"
+        android:icon="@android:drawable/ic_menu_gallery"
         android:title="Add Task"
         app:showAsAction="always"
         android:checked="true"/>
+    <item
+        android:id="@+id/activity_events_calendar"
+        android:icon="@android:drawable/ic_menu_my_calendar"
+        android:title="Add Task"
+        app:showAsAction="always"
+        android:checked="false"/>
 </menu>

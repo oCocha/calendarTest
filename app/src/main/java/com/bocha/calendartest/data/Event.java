@@ -19,7 +19,6 @@ public class Event {
         eventDescription = description;
     }
 
-
     public int[] getEventEndDate() {
         return eventEndDate;
     }
