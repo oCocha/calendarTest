@@ -14,6 +14,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.CalendarContract;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.widget.Toast;
@@ -32,6 +33,10 @@ import java.util.GregorianCalendar;
 
 public class EventUtility {
     private final static String TAG = "EventUtility";
+
+    private static Integer returnEventId = 1;
+
+    private static AlertDialog permRequestDialog;
 
     public static ArrayList<ArrayList> eventList = new ArrayList<ArrayList>();
 
@@ -61,17 +66,22 @@ public class EventUtility {
          * format: title, startTime, endTime, description, location, calID
          */
         for (int i = 0; i < CNames.length; i++) {
-            ArrayList<String> tempEvenList = new ArrayList<String>();
-            tempEvenList.add(cursor.getString(1));
-            tempEvenList.add(cursor.getString(3));
-            tempEvenList.add(cursor.getString(4));
-            tempEvenList.add(cursor.getString(2));
-            tempEvenList.add(cursor.getString(5));
-            tempEvenList.add(cursor.getString(0));
+            /**Checks whether the given event is the wanted kind of event id
+             * 1: event
+             * 3: holiday*/
+            if(Integer.parseInt(cursor.getString(0)) == returnEventId){
+                ArrayList<String> tempEvenList = new ArrayList<String>();
+                tempEvenList.add(cursor.getString(1));
+                tempEvenList.add(cursor.getString(3));
+                tempEvenList.add(cursor.getString(4));
+                tempEvenList.add(cursor.getString(2));
+                tempEvenList.add(cursor.getString(5));
+                tempEvenList.add(cursor.getString(0));
 
-            /**Add the current event to the Arraylist containing all events*/
-            eventList.add(tempEvenList);
-            CNames[i] = cursor.getString(1);
+                /**Add the current event to the Arraylist containing all events*/
+                eventList.add(tempEvenList);
+                CNames[i] = cursor.getString(1);
+            }
             cursor.moveToNext();
 
         }
@@ -91,6 +101,51 @@ public class EventUtility {
      * @param event
      * */
     public static void addEvent(final Activity activity, Event event) {
+
+        /**Save the event data in a final variable*/
+        final ContentValues eventValues = extractEventData(event);
+
+        final ContentResolver cr = activity.getContentResolver();
+
+        /**Save all events which collide with the new created event*/
+        ArrayList<ArrayList> collidingEvents = checkEventCollision((long)eventValues.get(CalendarContract.Events.DTSTART), (long)eventValues.get(CalendarContract.Events.DTEND));
+
+        /**Check whether the user granted the necessary permission to write to the calendar
+         * If the permission has not been granted yet request the permission from the user*/
+        if (permissionGrantedWriteCal(activity)) {
+            Log.v(TAG, "Size: " + collidingEvents.size());
+            if (collidingEvents.size() != 0) {
+                String collisionNames = new String();
+                for (int i = 0, j = collidingEvents.size(); i < j; i++) {
+                    collisionNames = collisionNames + " " + collidingEvents.get(i).get(0);
+                }
+
+                /**Show an alerdialog to ask the user whether he wants to create the new event*/
+                AlertDialog dialog = new AlertDialog.Builder(activity)
+                        .setTitle("New event collides with: " + collisionNames)
+                        .setMessage("Create new event?")
+                        .setPositiveButton("Accept", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
+                                    return;
+                                }
+                                Uri uri = cr.insert(CalendarContract.Events.CONTENT_URI, eventValues);
+                            }
+                        })
+                        .setNegativeButton("Decline", null)
+                        .create();
+                dialog.show();
+            }else{
+                Uri uri = cr.insert(CalendarContract.Events.CONTENT_URI, eventValues);
+                Log.v(TAG,"Event added");
+            }
+        }else{
+            Log.v(TAG, "Permission not granted");
+        }
+    }
+
+    private static ContentValues extractEventData(Event event) {
         /**Save the data which is necessary to create a new event*/
         long calID = 1;
         long startMillis = 0;
@@ -103,11 +158,7 @@ public class EventUtility {
         endTime.set(event.getEventEndDate()[0], event.getEventEndDate()[1], event.getEventEndDate()[2], event.getEventEndDate()[3], event.getEventEndDate()[4]);
         endMillis = endTime.getTimeInMillis();
 
-        /**Save all events which collide with the new created event*/
-        ArrayList<ArrayList> collidingEvents = EventUtility.checkEventCollision(startMillis, endMillis);
-
         /**Create new ContentValues containing the event data*/
-        final ContentResolver cr = activity.getContentResolver();
         ContentValues values = new ContentValues();
         values.put(CalendarContract.Events.DTSTART, startMillis);
         values.put(CalendarContract.Events.DTEND, endMillis);
@@ -116,49 +167,7 @@ public class EventUtility {
         values.put(CalendarContract.Events.CALENDAR_ID, calID);
         values.put(CalendarContract.Events.EVENT_TIMEZONE, "Europe/Berlin");
 
-        /**Save the event data*/
-        final ContentValues eventValues = values;
-
-        /**Check whether the user granted the necessary permission to write to the calendar
-         * If the permission has not been granted yet request the permission from the user*/
-        if (isCalendarWritePermissionGranted(activity)) {
-            Log.v(TAG, "Permission is granted");
-        }
-
-        /**Stop creating the new event if the user has not granted the necessary permission*/
-        if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
-            Log.v(TAG, "Permission not granted");
-            return;
-        }
-
-        /**Save names of the colliding events in a new string*/
-        Log.v(TAG, "Size: " + collidingEvents.size());
-        if (collidingEvents.size() != 0) {
-            String collisionNames = new String();
-            for (int i = 0, j = collidingEvents.size(); i < j; i++) {
-                collisionNames = collisionNames + " " + collidingEvents.get(i).get(0);
-            }
-
-            /**Show an alerdialog to ask the user whether he wants to create the new event*/
-            AlertDialog dialog = new AlertDialog.Builder(activity)
-                    .setTitle("New event collides with: " + collisionNames)
-                    .setMessage("Create new event?")
-                    .setPositiveButton("Accept", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialog, int which) {
-                            if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
-                                return;
-                            }
-                            Uri uri = cr.insert(CalendarContract.Events.CONTENT_URI, eventValues);
-                        }
-                    })
-                    .setNegativeButton("Decline", null)
-                    .create();
-            dialog.show();
-        }else{
-            Uri uri = cr.insert(CalendarContract.Events.CONTENT_URI, values);
-            Log.v(TAG,"Event added");
-        }
+        return values;
     }
 
     /**Check whether the new event collides with old events
@@ -176,40 +185,50 @@ public class EventUtility {
         return collidingEvents;
     }
 
-    /**Check whether the app can write into the calendar device app
+    /**Check whether the app can write in the calendar device app
      * Request the necessary permisison if not*/
-    public static boolean isCalendarWritePermissionGranted(Activity activity) {
-        if (Build.VERSION.SDK_INT >= 23) {
-            if (activity.checkSelfPermission(Manifest.permission.WRITE_CALENDAR)
-                    == PackageManager.PERMISSION_GRANTED) {
-                return true;
+    private static boolean permissionGrantedWriteCal(Activity activity){
+        if (ContextCompat.checkSelfPermission(activity,
+                Manifest.permission.WRITE_CALENDAR)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            // Should we show an explanation?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(activity,
+                    Manifest.permission.WRITE_CALENDAR)) {
+
+                final Activity finalActivity = activity;
+
+                permRequestDialog = new AlertDialog.Builder(finalActivity)
+                        .setTitle("Calendar read permission needed")
+                        .setMessage("The app needs the calendar read permission to get the events from the default calendar app.")
+                        .setPositiveButton("Accept", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+
+                                //Request the permission if the user accepts
+                                ActivityCompat.requestPermissions(finalActivity,
+                                        new String[]{Manifest.permission.WRITE_CALENDAR},
+                                        1);
+                            }
+                        })
+                        .setNegativeButton("Decline", null)
+                        .create();
+                permRequestDialog.show();
+
             } else {
 
-                Log.v(TAG,"Permission is revoked");
-                ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.WRITE_CALENDAR}, 1);
-                return false;
-            }
-        }
-        else { //permission is automatically granted on sdk<23 upon installation
-            return true;
-        }
-    }
+                // No explanation needed, we can request the permission.
 
-    /**Check whether the app can read the calendar device app
-     * Request the necessary permisison if not*/
-    public static boolean isCalendarReadPermissionGranted(Activity activity) {
-        if (Build.VERSION.SDK_INT >= 23) {
-            if (activity.checkSelfPermission(Manifest.permission.READ_CALENDAR)
-                    == PackageManager.PERMISSION_GRANTED) {
-                return true;
-            } else {
+                ActivityCompat.requestPermissions(activity,
+                        new String[]{Manifest.permission.WRITE_CALENDAR},
+                        1);
 
-                Log.v(TAG,"Permission is revoked");
-                ActivityCompat.requestPermissions(activity, new String[]{Manifest.permission.READ_CALENDAR}, 1);
-                return false;
+                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
+                // app-defined int constant. The callback method gets the
+                // result of the request.
             }
-        }
-        else { //permission is automatically granted on sdk<23 upon installation
+            return false;
+        }else{
             return true;
         }
     }
@@ -263,7 +282,6 @@ public class EventUtility {
         Log.i(TAG, "Rows deleted: " + rows);
         Toast toast = Toast.makeText(context, "Event " + eventId + "deleted.", Toast.LENGTH_SHORT);
         toast.show();
-
     }
 
     /**Update the eventTitle of an event of the default device calendar app
@@ -282,5 +300,13 @@ public class EventUtility {
         updateUri = ContentUris.withAppendedId(CalendarContract.Events.CONTENT_URI, eventId);
         int rows = cr.update(updateUri, values, null, null);
         Log.v(TAG, "Rows updated: " + rows);
+    }
+
+    /**Set the type of events that should be returned in the readCalendarEvent function
+     *
+     * @param i type of the event to be returned
+     */
+    private void setReturnEventId(Integer i){
+        returnEventId = i;
     }
 }

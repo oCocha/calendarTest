@@ -1,12 +1,14 @@
 package com.bocha.calendartest.activities;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -29,6 +31,8 @@ public class CalendarActivity extends AppCompatActivity {
 
     private static final String TAG = "New Events";
 
+    private AlertDialog permRequestDialog;
+
     private ListView myEventCalendarView;
     private ArrayList<ArrayList> eventList;
 
@@ -40,14 +44,17 @@ public class CalendarActivity extends AppCompatActivity {
         readEvents();
     }
 
-    private void readEvents() {
-        if(eventList != null){
-            eventList.clear();
+    private void readEvents(){
+        if(permissionGrantedReadCal()){
+            //Clear the eventList if necessary
+            if(eventList != null){
+                eventList.clear();
+            }
+            //Update the eventList
+            eventList = EventUtility.readCalendarEvent(this);
+        }else{
+            Log.v(TAG, "Read events permission not granted");
         }
-        if (isCalendarReadPermissionGranted()) {
-            Log.v(TAG, "Calendar read Permission granted");
-        }
-        eventList = EventUtility.readCalendarEvent(CalendarActivity.this);
     }
 
     @Override
@@ -73,21 +80,52 @@ public class CalendarActivity extends AppCompatActivity {
         }
     }
 
-    /**Check whether the app can write in the calendar device app
+    /**Placeholder
+     * not needed yet*/
+    /**Check whether the app can read in the calendar device app
      * Request the necessary permisison if not*/
-    public  boolean isCalendarReadPermissionGranted() {
-        if (Build.VERSION.SDK_INT >= 23) {
-            if (checkSelfPermission(Manifest.permission.READ_CALENDAR)
-                    == PackageManager.PERMISSION_GRANTED) {
-                return true;
+    private boolean permissionGrantedReadCal(){
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.READ_CALENDAR)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            // Should we show an explanation?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.READ_CALENDAR)) {
+
+                final Activity activity = this;
+
+                permRequestDialog = new AlertDialog.Builder(this)
+                        .setTitle("Calendar read permission needed")
+                        .setMessage("The app needs the calendar read permission to get the events from the default calendar app.")
+                        .setPositiveButton("Accept", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+
+                                //Request the permission if the user accepts
+                                ActivityCompat.requestPermissions(activity,
+                                        new String[]{Manifest.permission.READ_CALENDAR},
+                                        1);
+                            }
+                        })
+                        .setNegativeButton("Decline", null)
+                        .create();
+                permRequestDialog.show();
+
             } else {
 
-                Log.v(TAG,"Permission is revoked");
-                //ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_CALENDAR}, 1);
-                return false;
+                // No explanation needed, we can request the permission.
+
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.READ_CALENDAR},
+                        1);
+
+                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
+                // app-defined int constant. The callback method gets the
+                // result of the request.
             }
-        }
-        else { //permission is automatically granted on sdk<23 upon installation
+            return false;
+        }else{
             return true;
         }
     }
