@@ -1,6 +1,7 @@
 package com.bocha.calendartest;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
@@ -14,6 +15,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.provider.CalendarContract;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -45,17 +47,19 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<ArrayList> eventList;
     private ArrayList<String> eventNameList;
 
+    private AlertDialog permRequestDialog;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         myEventListView = (ListView) findViewById(R.id.list_event);
-        Log.v(TAG, "LIVESTVIEW: "+myEventListView);
 
-        readEvents();
+        //readEvents();
         updateUI();
     }
 
+    /*BU
     private void readEvents() {
         if(eventList != null){
             eventList.clear();
@@ -68,10 +72,23 @@ public class MainActivity extends AppCompatActivity {
             eventList = EventUtility.readCalendarEvent(this);
         }
         Log.v(TAG, "eventlist size: "+eventList.size());
-    }
-
-    private void requestReadCalendarPermission() {
-        ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_CALENDAR}, 1);
+    }*/
+    private void readEvents(){
+        if(permissionGrantedReadCal()){
+            //Clear the eventList if necessary
+            Log.v(TAG, "list1: "+eventList);
+            if(eventList != null){
+                eventList.clear();
+                Log.v(TAG, "CLEAR");
+            }
+            Log.v(TAG, "list2: "+eventList);
+            //Update the eventList
+            eventList = EventUtility.readCalendarEvent(this);
+            Log.v(TAG, "list3: "+eventList);
+            Log.v(TAG, "eventlist size: "+eventList.size());
+        }else{
+            Log.v(TAG, "Read events permission not granted");
+        }
     }
 
     /**Delay when adding a new event to the calendar
@@ -81,21 +98,23 @@ public class MainActivity extends AppCompatActivity {
 
         ArrayList<String> taskList = new ArrayList<>();
 
-        for (int i = 0, l = eventList.size(); i < l; i++) {
-            taskList.add((String) eventList.get(i).get(0));
-        }
-        if (myAdapter == null) {
-            myAdapter = new ArrayAdapter<>(this,
-                    R.layout.item_event,
-                    R.id.event_title,
-                    taskList);
-            myEventListView.setAdapter(myAdapter);
-            Log.v(TAG, "New adapter");
-        } else {
-            myAdapter.clear();
-            myAdapter.addAll(taskList);
-            myAdapter.notifyDataSetChanged();
-            Log.v(TAG, "NotifyDataSetChanged");
+        if(eventList != null) {
+            for (int i = 0, l = eventList.size(); i < l; i++) {
+                taskList.add((String) eventList.get(i).get(0));
+            }
+            if (myAdapter == null) {
+                myAdapter = new ArrayAdapter<>(this,
+                        R.layout.item_event,
+                        R.id.event_title,
+                        taskList);
+                myEventListView.setAdapter(myAdapter);
+                Log.v(TAG, "New adapter");
+            } else {
+                myAdapter.clear();
+                myAdapter.addAll(taskList);
+                myAdapter.notifyDataSetChanged();
+                Log.v(TAG, "NotifyDataSetChanged");
+            }
         }
         setupOnClickListener();
     }
@@ -253,19 +272,48 @@ public class MainActivity extends AppCompatActivity {
 
     /**Check whether the app can write in the calendar device app
      * Request the necessary permisison if not*/
-    public  boolean isCalendarReadPermissionGranted() {
-        if (Build.VERSION.SDK_INT >= 23) {
-            if (checkSelfPermission(Manifest.permission.READ_CALENDAR)
-                    == PackageManager.PERMISSION_GRANTED) {
-                return true;
+    private boolean permissionGrantedReadCal(){
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.READ_CALENDAR)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            // Should we show an explanation?
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this,
+                    Manifest.permission.READ_CALENDAR)) {
+
+                final Activity activity = this;
+
+                permRequestDialog = new AlertDialog.Builder(this)
+                        .setTitle("Calendar read permission needed")
+                        .setMessage("Do you grant the app the needed read calendar permission?")
+                        .setPositiveButton("Accept", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+
+                                //Request the permission if the user accepts
+                                ActivityCompat.requestPermissions(activity,
+                                        new String[]{Manifest.permission.READ_CALENDAR},
+                                        1);
+                            }
+                        })
+                        .setNegativeButton("Decline", null)
+                        .create();
+                permRequestDialog.show();
+
             } else {
 
-                Log.v(TAG,"Permission is revoked");
-                //ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.READ_CALENDAR}, 1);
-                return false;
+                // No explanation needed, we can request the permission.
+
+                ActivityCompat.requestPermissions(this,
+                        new String[]{Manifest.permission.READ_CALENDAR},
+                        1);
+
+                // MY_PERMISSIONS_REQUEST_READ_CONTACTS is an
+                // app-defined int constant. The callback method gets the
+                // result of the request.
             }
-        }
-        else { //permission is automatically granted on sdk<23 upon installation
+            return false;
+        }else{
             return true;
         }
     }
@@ -274,8 +322,24 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if(grantResults[0]== PackageManager.PERMISSION_GRANTED){
-            Log.v(TAG,"Permission: "+permissions[0]+ "was "+grantResults[0]);
+            Log.v(TAG,"Permission: "+permissions[0]+ " was "+grantResults[0] + "PERM"+Manifest.permission.READ_CALENDAR);
             //resume tasks needing this permission
+            if(permissions[0].equals(Manifest.permission.READ_CALENDAR)){
+                Log.v(TAG, "Permission result read calendar success.");
+                updateUI();
+            }
+        }
+
+    }
+
+    /**Destroy permission request dialogs if the used activity is destroyed
+     * e.g flipping device*/
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (permRequestDialog != null) {
+            permRequestDialog.dismiss();
+            permRequestDialog = null;
         }
     }
 }

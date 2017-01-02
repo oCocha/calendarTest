@@ -41,6 +41,11 @@ public class EventUtility {
      * @return ArrayList An ArrayList containing the events of the device calendar app
      */
     public static ArrayList<ArrayList> readCalendarEvent(Context context) {
+        /**Clear the eventList if it is not null*/
+        if(eventList != null){
+            eventList.clear();
+        }
+
         Cursor cursor = context.getContentResolver()
                 .query(
                         Uri.parse("content://com.android.calendar/events"),
