@@ -2,6 +2,7 @@ package com.bocha.calendartest.activities;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -31,6 +32,7 @@ import com.bocha.calendartest.R;
 import com.bocha.calendartest.adapter.eventAdapter;
 import com.bocha.calendartest.data.Event;
 import com.bocha.calendartest.utility.EventUtility;
+import com.bocha.calendartest.views.ExpandedListView;
 import com.roomorama.caldroid.CaldroidFragment;
 import com.roomorama.caldroid.CaldroidListener;
 
@@ -64,7 +66,7 @@ public class CalendarActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_calendar);
-        myEventListView = (ListView) findViewById(R.id.list_event_calendar);
+        myEventListView = (ExpandedListView) findViewById(R.id.list_event_calendar);
         eventTextView = (TextView) findViewById(R.id.event_textView);
 
         formatter = new SimpleDateFormat("dd MMM yyyy hh : mm");
@@ -95,6 +97,8 @@ public class CalendarActivity extends AppCompatActivity {
         t.replace(R.id.calendar1, caldroidFragment);
         t.commit();
 
+        final Context listenerContext = this;
+
         // Setup listener
         final CaldroidListener listener = new CaldroidListener() {
 
@@ -110,14 +114,31 @@ public class CalendarActivity extends AppCompatActivity {
                 if(matchingEvents.size() != 0){
                     showEventsData(matchingEvents);
                 }
+
+                updateUI();
             }
 
             @Override
-            public void onLongClickDate(Date date, View view) {
-                //TODO:Lon clicked events edit?
-                Toast.makeText(getApplicationContext(),
-                        "Long click " + formatter.format(date),
-                        Toast.LENGTH_SHORT).show();
+            public void onLongClickDate(final Date date, View view) {
+                final EditText eventEditText = new EditText(listenerContext);
+                AlertDialog dialog = new AlertDialog.Builder(listenerContext)
+                        .setTitle("New event")
+                        .setMessage("Accept the event?")
+                        .setView(eventEditText)
+                        .setPositiveButton("Accept", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+
+                                addEvent(date, String.valueOf(eventEditText.getText()));
+
+                                //updateUI();
+                            }
+                        })
+                        .setNegativeButton("Decline", null)
+                        .create();
+                dialog.show();
+
+                updateUI();
             }
         };
 
@@ -128,6 +149,19 @@ public class CalendarActivity extends AppCompatActivity {
         updateUI();
         setupListClickListener();
         insertEvents();
+    }
+
+    /**Add the event using the EventUtility class*/
+    private void addEvent(Date date, String eventTitle) {
+        int[] startDate = {2017, 0, 24, 7, 30};
+        int[] endDate = {2017, 0, 24, 14, 30};
+        Log.v(TAG, "adding Event: "+date);
+
+        Event event = new Event(startDate, endDate, eventTitle, "Descrption for " + eventTitle);
+
+        EventUtility.addEvent(CalendarActivity.this, event);
+
+        updateUI();
     }
 
     /**Check whether the clicked date contains any events and return the matches*/
@@ -145,8 +179,10 @@ public class CalendarActivity extends AppCompatActivity {
         return matchingEvents;
     }
 
-    /**Setup an click listener for the listview elements*/
+    /**Setup two click listeners for the listview element*/
     private void setupListClickListener() {
+        //Setup the clickListener for the eventlist
+        //Show the event info on click
         myEventListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
@@ -155,6 +191,37 @@ public class CalendarActivity extends AppCompatActivity {
                 caldroidFragment.moveToDate(new Date(Long.parseLong(startDate)));
 
                 showEventData(position);
+            }
+        });
+
+        //Setup the longClickListener for the eventlist
+        //edit the title of the event on longclick
+        final Context context = this;
+        myEventListView.setOnItemLongClickListener(new AdapterView.OnItemLongClickListener() {
+            @Override
+            public boolean onItemLongClick(AdapterView<?> arg0, View arg1, int position, long arg3) {
+                final String eventTitle = myEventListView.getItemAtPosition(position).toString();
+                Log.v(TAG, "Update: " + eventTitle);
+                final EditText eventEditText = new EditText(context);
+                AlertDialog dialog = new AlertDialog.Builder(context)
+                        .setTitle("Update event title")
+                        .setMessage("What should the new event title be?")
+                        .setView(eventEditText)
+                        .setPositiveButton("Accept", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                String newTitle = String.valueOf(eventEditText.getText());
+                                Integer eventId = EventUtility.getEventIdByTitle(context, eventTitle);
+                                Log.v(TAG, "Change title to: "+newTitle);
+                                EventUtility.updateEventTitle(context, newTitle, eventId);
+
+                                updateUI();
+                            }
+                        })
+                        .setNegativeButton("Decline", null)
+                        .create();
+                dialog.show();
+                return true;
             }
         });
     }
@@ -224,8 +291,10 @@ public class CalendarActivity extends AppCompatActivity {
                 myAdapter.addAll(taskList);
                 myAdapter.notifyDataSetChanged();
                 Log.v(TAG, "NotifyDataSetChanged");
+                Log.v(TAG, "TaskList: "+taskList);
             }
         }
+        setupListClickListener();
     }
 
     private void readEvents(){
@@ -236,9 +305,41 @@ public class CalendarActivity extends AppCompatActivity {
             }
             //Update the eventList
             eventList = EventUtility.readCalendarEvent(this);
+            Log.v(TAG, "EventList: " + eventList);
         }else{
             Log.v(TAG, "Read events permission not granted");
         }
+    }
+
+    /**Delete the according calendar event when the delete button is clicked
+     * To delete the event the EventUtility class is used*/
+    public void deleteEvent(View view) {
+        View parent = (View) view.getParent();
+        TextView taskTextView = (TextView) parent.findViewById(R.id.event_title);
+        String eventTitle = String.valueOf(taskTextView.getText());
+
+        final Integer eventId = EventUtility.getEventIdByTitle(this, eventTitle);
+        Log.v(TAG, ""+eventId);
+
+        final Context context = this;
+
+        AlertDialog dialog = new AlertDialog.Builder(this)
+                .setTitle("Delete event")
+                .setMessage("Delete the event '" + eventTitle + "' with event id: " + eventId + "?")
+                .setPositiveButton("Accept", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+
+                        EventUtility.deleteEventById(context, eventId);
+
+                        updateUI();
+                    }
+                })
+                .setNegativeButton("Decline", null)
+                .create();
+        dialog.show();
+
+        updateUI();
     }
 
     @Override
