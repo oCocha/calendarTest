@@ -153,11 +153,11 @@ public class CalendarActivity extends AppCompatActivity {
 
     /**Add the event using the EventUtility class*/
     private void addEvent(Date date, String eventTitle) {
-        int[] startDate = {2017, 0, 24, 7, 30};
-        int[] endDate = {2017, 0, 24, 14, 30};
+        //int[] startDate = {2017, 0, 24, 7, 30};
+        //int[] endDate = {2017, 0, 24, 14, 30};
         Log.v(TAG, "adding Event: "+date);
 
-        Event event = new Event(startDate, endDate, eventTitle, "Descrption for " + eventTitle);
+        Event event = new Event(date, date, eventTitle, "Descrption for " + eventTitle);
 
         EventUtility.addEvent(CalendarActivity.this, event);
 

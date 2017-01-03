@@ -11,7 +11,9 @@ import android.widget.TextView;
 import com.bocha.calendartest.R;
 import com.bocha.calendartest.data.Event;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 
 /**
  * Created by bob on 26.12.16.
@@ -20,9 +22,13 @@ import java.util.ArrayList;
 public class eventAdapter extends ArrayAdapter {
     ArrayList<Event> events;
 
+    SimpleDateFormat formatter;
+
     public eventAdapter(Context context, int eventId, int titleId, int descId, ArrayList<Event> events){
         super(context, eventId, events);
         this.events = events;
+
+        formatter = new SimpleDateFormat("dd MMM yyyy hh : mm");
     }
 
     /*
@@ -81,11 +87,10 @@ public class eventAdapter extends ArrayAdapter {
 
     }
 
-    private String dateToString(int[] dates) {
+    private String dateToString(Date date) {
         String result = "";
-        for(int i = 0, j = dates.length; i < j; i++){
-            result = result + " " + dates[i];
-        }
+        result += formatter.format(date);
+
         return result;
     }
 

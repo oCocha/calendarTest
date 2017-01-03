@@ -81,19 +81,19 @@ public class NewEventsActivity extends AppCompatActivity {
 
     private void setupNewEventsData() {
         /**Setup the test start date*/
-        int[] tempStartDate1 = {2016, 11, 24, 7, 30};
-        eventStartDate.add(tempStartDate1);
-        int[] tempStartDate2 = {2016, 11, 27, 7, 30};
-        eventStartDate.add(tempStartDate2);
-        int[] tempStartDate3 = {2016, 11, 20, 7, 30};
-        eventStartDate.add(tempStartDate3);
+        long tempStartDate1 = 1482561038000L;
+        //ALTeventStartDate.add(tempStartDate1);
+        long tempStartDate2 = 1482820238000L;
+        //ALTeventStartDate.add(tempStartDate2);
+        long tempStartDate3 = 1482215439000L;
+        //ALTeventStartDate.add(tempStartDate3);
         /**Setup the test end date*/
-        int[] tempEndDate1 = {2016, 11, 24, 9, 30};
-        eventEndDate.add(tempEndDate1);
-        int[] tempEndDate2 = {2016, 11, 27, 11, 30};
-        eventEndDate.add(tempEndDate2);
-        int[] tempEndDate3 = {2016, 11, 20, 15, 30};
-        eventEndDate.add(tempEndDate3);
+        long tempEndDate1 = 1482568238000L;
+        //ALTeventEndDate.add(tempEndDate1);
+        long tempEndDate2 = 1482830239000L;
+        //ALTeventEndDate.add(tempEndDate2);
+        long tempEndDate3 = 1482216449000L;
+        //ALTeventEndDate.add(tempEndDate3);
         /**Setup the test names*/
         eventName.add("Test event 1");
         eventName.add("Test event 2");

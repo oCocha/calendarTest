@@ -40,6 +40,8 @@ public class EventUtility {
 
     public static ArrayList<ArrayList> eventList = new ArrayList<ArrayList>();
 
+    private static Context context;
+
     /**Read all events from the device default calendar and return
      * an arraylist containing all events
      * @param context
@@ -105,7 +107,12 @@ public class EventUtility {
         /**Save the event data in a final variable*/
         final ContentValues eventValues = extractEventData(event);
 
+        Log.v(TAG, "eventValues: "+eventValues);
+
         final ContentResolver cr = activity.getContentResolver();
+
+        /**Update the eventsList*/
+        updateEventList();
 
         /**Save all events which collide with the new created event*/
         ArrayList<ArrayList> collidingEvents = checkEventCollision((long)eventValues.get(CalendarContract.Events.DTSTART), (long)eventValues.get(CalendarContract.Events.DTEND));
@@ -145,18 +152,60 @@ public class EventUtility {
         }
     }
 
+    /**Update the eventlist*/
+    public static void updateEventList() {
+        /**Clear the eventList if it is not null*/
+        if(eventList != null){
+            eventList.clear();
+        }
+
+        Cursor cursor = context.getContentResolver()
+                .query(
+                        Uri.parse("content://com.android.calendar/events"),
+                        new String[]{"calendar_id", "title", "description",
+                                "dtstart", "dtend", "eventLocation"}, null,
+                        null, null);
+        cursor.moveToFirst();
+
+        /**Get the number of events returned*/
+        String CNames[] = new String[cursor.getCount()];
+
+        /**Save the current event in a single Arraylist
+         * format: title, startTime, endTime, description, location, calID
+         */
+        for (int i = 0; i < CNames.length; i++) {
+            /**Checks whether the given event is the wanted kind of event id
+             * 1: event
+             * 3: holiday*/
+            if(Integer.parseInt(cursor.getString(0)) == returnEventId){
+                ArrayList<String> tempEvenList = new ArrayList<String>();
+                tempEvenList.add(cursor.getString(1));
+                tempEvenList.add(cursor.getString(3));
+                tempEvenList.add(cursor.getString(4));
+                tempEvenList.add(cursor.getString(2));
+                tempEvenList.add(cursor.getString(5));
+                tempEvenList.add(cursor.getString(0));
+
+                /**Add the current event to the Arraylist containing all events*/
+                eventList.add(tempEvenList);
+                CNames[i] = cursor.getString(1);
+            }
+            cursor.moveToNext();
+        }
+    }
+
     private static ContentValues extractEventData(Event event) {
         /**Save the data which is necessary to create a new event*/
         long calID = 1;
-        long startMillis = 0;
-        long endMillis = 0;
+        long startMillis;
+        long endMillis;
         Calendar beginTime = null;
         beginTime = Calendar.getInstance();
-        beginTime.set(event.getEventStartDate()[0], event.getEventStartDate()[1], event.getEventStartDate()[2], event.getEventStartDate()[3], event.getEventStartDate()[4]);
-        startMillis = beginTime.getTimeInMillis();
+        //beginTime.set(event.getEventStartDate()[0], event.getEventStartDate()[1], event.getEventStartDate()[2], event.getEventStartDate()[3], event.getEventStartDate()[4]);
+        startMillis = event.getEventStartDate().getTime();
         Calendar endTime = Calendar.getInstance();
-        endTime.set(event.getEventEndDate()[0], event.getEventEndDate()[1], event.getEventEndDate()[2], event.getEventEndDate()[3], event.getEventEndDate()[4]);
-        endMillis = endTime.getTimeInMillis();
+        //endTime.set(event.getEventEndDate()[0], event.getEventEndDate()[1], event.getEventEndDate()[2], event.getEventEndDate()[3], event.getEventEndDate()[4]);
+        endMillis = event.getEventEndDate().getTime();
 
         /**Create new ContentValues containing the event data*/
         ContentValues values = new ContentValues();
@@ -175,9 +224,10 @@ public class EventUtility {
     public static ArrayList<ArrayList> checkEventCollision(long startMillis, long endMillis) {
         ArrayList<ArrayList> collidingEvents = new ArrayList<>();
         Log.v(TAG, "Eventlist size: " + eventList.size());
+        Log.v(TAG, "Eventlist: " + eventList);
         for(int i = 0, l = eventList.size(); i < l; i++){
-            if((Long.parseLong((String)eventList.get(i).get(1)) > startMillis && Long.parseLong((String)eventList.get(i).get(1)) < endMillis) ||
-                    (Long.parseLong((String)eventList.get(i).get(2)) > startMillis && Long.parseLong((String)eventList.get(i).get(2)) < endMillis)){
+            if((Long.parseLong((String)eventList.get(i).get(1)) >= startMillis && Long.parseLong((String)eventList.get(i).get(1)) <= endMillis) ||
+                    (Long.parseLong((String)eventList.get(i).get(2)) >= startMillis && Long.parseLong((String)eventList.get(i).get(2)) <= endMillis)){
                 collidingEvents.add(eventList.get(i));
                 Log.v(TAG, "Event collision: " + eventList.get(i).get(0));
             }
@@ -234,8 +284,10 @@ public class EventUtility {
     }
 
     /**Get the eventID for an event with the given eventtitle*/
-    public static int getEventIdByTitle(Context context, String eventtitle) {
+    public static int getEventIdByTitle(Context newContext, String eventtitle) {
+        context = newContext;
         Uri eventUri;
+
         /**Create the base for the eventUri according to the used device sdk*/
         if (android.os.Build.VERSION.SDK_INT <= 7) {
             eventUri = Uri.parse("content://calendar/events");
@@ -270,10 +322,11 @@ public class EventUtility {
 
     /**Delete a calendar event of the default device calendar app
      * and show a toast afterwards
-     * @param context
+     * @param newContext
      * @param eventId The Id of the event
      */
-    public static void deleteEventById(Context context, Integer eventId) {
+    public static void deleteEventById(Context newContext, Integer eventId) {
+        context = newContext;
         Log.v(TAG, "Delete event: "+eventId);
         ContentResolver cr = context.getContentResolver();
         Uri deleteUri = null;
@@ -286,11 +339,13 @@ public class EventUtility {
 
     /**Update the eventTitle of an event of the default device calendar app
      *
-     * @param context
+     * @param newContext
      * @param eventTitle The new event title
      * @param eventId The Id of the event
      */
-    public static void updateEventTitle(Context context, String eventTitle, Integer eventId) {
+    public static void updateEventTitle(Context newContext, String eventTitle, Integer eventId) {
+        context = newContext;
+
         ContentResolver cr = context.getContentResolver();
         ContentValues values = new ContentValues();
         Uri updateUri = null;

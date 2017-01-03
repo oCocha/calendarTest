@@ -207,8 +207,8 @@ public class MainActivity extends AppCompatActivity {
 
     /**Add the event using the EventUtility class*/
     private void addEvent(String eventTitle) {
-        int[] startDate = {2016, 11, 24, 7, 30};
-        int[] endDate = {2016, 11, 24, 14, 30};
+        long startDate = 1482561038000L;
+        long endDate = 1482561038000L;
 
         Event event = new Event(startDate, endDate, eventTitle, "Descrption for " + eventTitle);
 
