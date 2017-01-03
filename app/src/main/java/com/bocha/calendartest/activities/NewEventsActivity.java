@@ -72,7 +72,7 @@ public class NewEventsActivity extends AppCompatActivity {
             @Override
             public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3) {
                 Event event = (Event)myEventListView.getItemAtPosition(position);
-                //readEvents();
+                readEvents();
                 EventUtility.addEvent(NewEventsActivity.this, event);
                 Log.v(TAG, "Clicked: " + event.getEventName());
             }
@@ -110,7 +110,7 @@ public class NewEventsActivity extends AppCompatActivity {
     }
 
     /**Placeholder
-     * not needed yet*//*
+     * not needed yet*/
     private void readEvents(){
         if(permissionGrantedReadCal()){
             //Clear the eventList if necessary
@@ -122,7 +122,7 @@ public class NewEventsActivity extends AppCompatActivity {
         }else{
             Log.v(TAG, "Read events permission not granted");
         }
-    }*/
+    }
 
     /**Delay when adding a new event to the calendar
      * -> The list doesnt update correctly sometimes*/

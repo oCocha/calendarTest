@@ -19,6 +19,7 @@ import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.bocha.calendartest.MainActivity;
 import com.bocha.calendartest.data.Event;
 
 import java.text.SimpleDateFormat;
@@ -112,7 +113,7 @@ public class EventUtility {
         final ContentResolver cr = activity.getContentResolver();
 
         /**Update the eventsList*/
-        updateEventList();
+        //updateEventList();
 
         /**Save all events which collide with the new created event*/
         ArrayList<ArrayList> collidingEvents = checkEventCollision((long)eventValues.get(CalendarContract.Events.DTSTART), (long)eventValues.get(CalendarContract.Events.DTEND));

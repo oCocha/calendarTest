@@ -2,6 +2,9 @@ package com.bocha.calendartest.views;
 
 /**
  * Created by bob on 03.01.17.
+ *
+ * A ListView which expands every listItem at any time
+ *
  */
 import android.content.Context;
 import android.graphics.Canvas;
@@ -22,7 +25,9 @@ public class ExpandedListView extends ListView {
         if (getCount() != old_count) {
             old_count = getCount();
             params = getLayoutParams();
-            params.height = getCount() * (old_count > 0 ? getChildAt(0).getHeight() : 0);
+            if(getChildCount() != 0){
+                params.height = getCount() * (old_count > 0 ? getChildAt(0).getHeight() : 0);
+            }
             setLayoutParams(params);
         }
 

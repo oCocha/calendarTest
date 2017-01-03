@@ -283,4 +283,16 @@ public class MainActivity extends AppCompatActivity {
             }
         }
     }
+
+    /**Destroy permission request dialogs if the used activity is destroyed
+     * e.g flipping device*/
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (permRequestDialog != null) {
+            permRequestDialog.dismiss();
+            permRequestDialog = null;
+        }
+    }
+
 }
