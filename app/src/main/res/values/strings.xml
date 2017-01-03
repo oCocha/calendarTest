@@ -1,3 +1,6 @@
 <resources>
     <string name="app_name">Calendar test</string>
+    <string name="customize">Customize</string>
+    <string name="show_dialog">Show_dialog</string>
+    <string name="undo">Undo</string>
 </resources>

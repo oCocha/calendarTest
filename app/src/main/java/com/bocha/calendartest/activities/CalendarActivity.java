@@ -5,9 +5,12 @@ import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -16,16 +19,28 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bocha.calendartest.MainActivity;
 import com.bocha.calendartest.R;
 import com.bocha.calendartest.adapter.eventAdapter;
 import com.bocha.calendartest.data.Event;
 import com.bocha.calendartest.utility.EventUtility;
+import com.roomorama.caldroid.CaldroidFragment;
+import com.roomorama.caldroid.CaldroidListener;
 
+import org.w3c.dom.Text;
+
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 public class CalendarActivity extends AppCompatActivity {
 
@@ -33,15 +48,184 @@ public class CalendarActivity extends AppCompatActivity {
 
     private AlertDialog permRequestDialog;
 
-    private ListView myEventCalendarView;
+    private ListView myEventListView;
+    private TextView eventTextView;
+
     private ArrayList<ArrayList> eventList;
+
+    private ArrayAdapter<String> myAdapter;
+
+    private boolean undo = false;
+    private CaldroidFragment caldroidFragment;
+
+    SimpleDateFormat formatter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_calendar);
+        myEventListView = (ListView) findViewById(R.id.list_event_calendar);
+        eventTextView = (TextView) findViewById(R.id.event_textView);
+
+        formatter = new SimpleDateFormat("dd MMM yyyy hh : mm");
+
+        // Setup caldroid fragment
+        // **** If you want normal CaldroidFragment, use below line ****
+        caldroidFragment = new CaldroidFragment();
+
+        // If Activity is created after rotation
+        if (savedInstanceState != null) {
+            caldroidFragment.restoreStatesFromKey(savedInstanceState,
+                    "CALDROID_SAVED_STATE");
+        }
+        // If activity is created from fresh
+        else {
+            Bundle args = new Bundle();
+            Calendar cal = Calendar.getInstance();
+            args.putInt(CaldroidFragment.MONTH, cal.get(Calendar.MONTH) + 1);
+            args.putInt(CaldroidFragment.YEAR, cal.get(Calendar.YEAR));
+            args.putBoolean(CaldroidFragment.ENABLE_SWIPE, true);
+            args.putBoolean(CaldroidFragment.SIX_WEEKS_IN_CALENDAR, true);
+
+            caldroidFragment.setArguments(args);
+        }
+
+        // Attach to the activity
+        FragmentTransaction t = getSupportFragmentManager().beginTransaction();
+        t.replace(R.id.calendar1, caldroidFragment);
+        t.commit();
+
+        // Setup listener
+        final CaldroidListener listener = new CaldroidListener() {
+
+            @Override
+            public void onSelectDate(Date date, View view) {
+                //TODO:CLicked Events anzeigen
+
+                String text = "Selected: " + formatter.format(date);
+
+                eventTextView.setText(text);
+
+                ArrayList<ArrayList> matchingEvents = getMatchingEvents(date);
+                if(matchingEvents.size() != 0){
+                    showEventsData(matchingEvents);
+                }
+            }
+
+            @Override
+            public void onLongClickDate(Date date, View view) {
+                //TODO:Lon clicked events edit?
+                Toast.makeText(getApplicationContext(),
+                        "Long click " + formatter.format(date),
+                        Toast.LENGTH_SHORT).show();
+            }
+        };
+
+        // Setup Caldroid listener
+        caldroidFragment.setCaldroidListener(listener);
 
         readEvents();
+        updateUI();
+        setupListClickListener();
+        insertEvents();
+    }
+
+    /**Check whether the clicked date contains any events and return the matches*/
+    private ArrayList<ArrayList> getMatchingEvents(Date date) {
+        Long dateStart = date.getTime();
+        Long dateEnd = dateStart + TimeUnit.DAYS.toMillis(1);
+        ArrayList<ArrayList> matchingEvents = new ArrayList<>();
+
+        for(int i = 0, j = eventList.size(); i < j; i++){
+            Long eventStart = Long.parseLong((String)eventList.get(i).get(1));
+            if(eventStart >= dateStart && eventStart <= dateEnd){
+                matchingEvents.add(eventList.get(i));
+            }
+        }
+        return matchingEvents;
+    }
+
+    /**Setup an click listener for the listview elements*/
+    private void setupListClickListener() {
+        myEventListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3) {
+                String startDate = (String)eventList.get(position).get(1);
+                caldroidFragment.moveToDate(new Date(Long.parseLong(startDate)));
+
+                showEventData(position);
+            }
+        });
+    }
+
+    private void showEventData(int position) {
+        ArrayList<String> clickedEvent = eventList.get(position);
+        String eventInfo = "" + clickedEvent.get(0) + "\n";
+        eventInfo += "" + formatter.format(new Date(Long.parseLong(clickedEvent.get(1)))) + " - " + formatter.format(new Date(Long.parseLong(clickedEvent.get(2)))) + "\n";
+        eventInfo += "" + clickedEvent.get(3) + "\n";
+
+        eventTextView.setText(eventInfo);
+    }
+
+    private void showEventsData(ArrayList<ArrayList> eventList) {
+        ArrayList<String> clickedEvent = new ArrayList<>();
+        String eventsInfo = new String();
+        for(int i = 0, j = eventList.size(); i < j; i++){
+            clickedEvent = eventList.get(i);
+            eventsInfo += "" + clickedEvent.get(0) + "\n";
+            eventsInfo += "" + formatter.format(new Date(Long.parseLong(clickedEvent.get(1)))) + " - " + formatter.format(new Date(Long.parseLong(clickedEvent.get(2)))) + "\n";
+            eventsInfo += "" + clickedEvent.get(3) + "\n" + "\n";
+        }
+
+        eventTextView.setText(eventsInfo);
+    }
+
+    /**Insert the extracted events to the calendar fragment*/
+    private void insertEvents() {
+        Calendar cal;
+        Date eventDate;
+
+        for(int i  = 0, j = eventList.size(); i < j; i++){
+
+            // Max date is next 7 days
+            cal = Calendar.getInstance();
+            cal.add(Calendar.DATE, 7);
+            cal.getTime();
+            eventDate = new Date(Long.parseLong((String)eventList.get(i).get(1)));
+
+            if (caldroidFragment != null) {
+                ColorDrawable eventDrawable = new ColorDrawable(Color.RED);
+                caldroidFragment.setBackgroundDrawableForDate(eventDrawable, eventDate);
+            }
+        }
+    }
+
+    /**Delay when adding a new event to the calendar
+     * -> The list doesnt update correctly sometimes*/
+    private void updateUI() {
+        readEvents();
+
+        ArrayList<String> taskList = new ArrayList<>();
+
+        if (eventList != null) {
+            for (int i = 0, l = eventList.size(); i < l; i++) {
+                taskList.add((String) eventList.get(i).get(0));
+            }
+            if (myAdapter == null) {
+                myAdapter = new ArrayAdapter<>(this,
+                        R.layout.item_event,
+                        R.id.event_title,
+                        taskList);
+                myEventListView.setAdapter(myAdapter);
+                Log.v(TAG, "New adapter");
+            } else {
+                myAdapter.clear();
+                myAdapter.addAll(taskList);
+                myAdapter.notifyDataSetChanged();
+                Log.v(TAG, "NotifyDataSetChanged");
+            }
+        }
     }
 
     private void readEvents(){
@@ -127,6 +311,30 @@ public class CalendarActivity extends AppCompatActivity {
             return false;
         }else{
             return true;
+        }
+    }
+
+    /**
+     * Save current states of the Calendar here
+     */
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        // TODO Auto-generated method stub
+        super.onSaveInstanceState(outState);
+
+        if (caldroidFragment != null) {
+            caldroidFragment.saveStatesToKey(outState, "CALDROID_SAVED_STATE");
+        }
+    }
+
+    /**Destroy permission request dialogs if the used activity is destroyed
+     * e.g flipping device*/
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (permRequestDialog != null) {
+            permRequestDialog.dismiss();
+            permRequestDialog = null;
         }
     }
 
