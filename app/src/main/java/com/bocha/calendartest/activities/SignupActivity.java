@@ -8,6 +8,7 @@ package com.bocha.calendartest.activities;
  */
 
 import android.app.ProgressDialog;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -21,6 +22,9 @@ import com.bocha.calendartest.R;
 
 public class SignupActivity extends AppCompatActivity {
     private static final String TAG = "SignupActivity";
+    public static final String PREFS_NAME = "LoginPrefs";
+
+    private SharedPreferences userData;
 
     private EditText _nameText;
     private EditText _emailText;
@@ -75,6 +79,7 @@ public class SignupActivity extends AppCompatActivity {
         String password = _passwordText.getText().toString();
 
         // TODO: Implement your own signup logic here.
+        saveUserData(name, email, password);
 
         new android.os.Handler().postDelayed(
                 new Runnable() {
@@ -86,6 +91,22 @@ public class SignupActivity extends AppCompatActivity {
                         progressDialog.dismiss();
                     }
                 }, 3000);
+    }
+
+    private void saveUserData(String name, String email, String password) {
+
+        //TODO:Send new account data to the server
+
+        userData = getSharedPreferences(PREFS_NAME, 0);
+        SharedPreferences.Editor editor = userData.edit();
+        editor.putString("userName", name);
+        editor.putString("userMail", email);
+        editor.putString("userPass", password);
+
+        // Commit the edits
+        editor.commit();
+
+        Log.v(TAG, "Login saved "+name+" --- usermail: "+email+" --- userpass: "+password);
     }
 
 

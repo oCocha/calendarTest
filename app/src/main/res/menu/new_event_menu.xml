@@ -5,7 +5,12 @@
         android:id="@+id/action_add_event"
         android:icon="@android:drawable/ic_menu_add"
         android:title="Add Task"
-        app:showAsAction="always" />
+        app:showAsAction="never" />
+    <item
+        android:id="@+id/action_log_out"
+        android:icon="@android:drawable/arrow_down_float"
+        android:title="Log out"
+        app:showAsAction="never" />
     <item
         android:id="@+id/activity_new_events"
         android:icon="@android:drawable/ic_menu_info_details"

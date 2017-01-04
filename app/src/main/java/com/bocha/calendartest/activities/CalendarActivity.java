@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
@@ -27,6 +28,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bocha.calendartest.LoginActivity;
 import com.bocha.calendartest.MainActivity;
 import com.bocha.calendartest.R;
 import com.bocha.calendartest.adapter.eventAdapter;
@@ -47,6 +49,9 @@ import java.util.concurrent.TimeUnit;
 public class CalendarActivity extends AppCompatActivity {
 
     private static final String TAG = "New Events";
+    public static final String PREFS_NAME = "LoginPrefs";
+
+    private SharedPreferences userData;
 
     private AlertDialog permRequestDialog;
 
@@ -359,10 +364,28 @@ public class CalendarActivity extends AppCompatActivity {
                 Intent newIntent = new Intent(this, NewEventsActivity.class);
                 startActivity(newIntent);
                 return true;
+            case R.id.action_log_out:
+                logout();
+                return true;
 
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    /**Replace the saved login data with the default values
+     * and start the login activity*/
+    private void logout() {
+        userData = getSharedPreferences(PREFS_NAME, 0);
+        SharedPreferences.Editor editor = userData.edit();
+        editor.putString("userMail", "Default");
+        editor.putString("userPass", "Default");
+
+        // Commit the edits
+        editor.commit();
+
+        Intent logoutIntent = new Intent(this, LoginActivity.class);
+        startActivity(logoutIntent);
     }
 
     /**Placeholder

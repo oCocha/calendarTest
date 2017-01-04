@@ -7,6 +7,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 
 import java.util.Calendar;
@@ -41,6 +42,7 @@ import java.util.GregorianCalendar;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "Main Menu";
+    public static final String PREFS_NAME = "LoginPrefs";
 
     private ListView myEventListView;
     private ArrayAdapter<String> myAdapter;
@@ -49,6 +51,8 @@ public class MainActivity extends AppCompatActivity {
 
     private AlertDialog permRequestDialog;
     private Event standbyEvent;
+
+    private SharedPreferences userData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -199,10 +203,28 @@ public class MainActivity extends AppCompatActivity {
                 Intent calIntent = new Intent(this, CalendarActivity.class);
                 startActivity(calIntent);
                 return true;
+            case R.id.action_log_out:
+                logout();
+                return true;
 
             default:
                 return super.onOptionsItemSelected(item);
         }
+    }
+
+    /**Replace the saved login data with the default values
+     * and start the login activity*/
+    private void logout() {
+        userData = getSharedPreferences(PREFS_NAME, 0);
+        SharedPreferences.Editor editor = userData.edit();
+        editor.putString("userMail", "Default");
+        editor.putString("userPass", "Default");
+
+        // Commit the edits
+        editor.commit();
+
+        Intent logoutIntent = new Intent(this, LoginActivity.class);
+        startActivity(logoutIntent);
     }
 
     /**Add the event using the EventUtility class*/
