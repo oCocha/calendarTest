@@ -72,13 +72,21 @@ public class NewEventsActivity extends AppCompatActivity {
 
     /**Setup an click listener for the listview elements*/
     private void setupNewEventsClickListener() {
+        final Context context = this;
+
         myEventListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
 
             @Override
             public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3) {
                 Event event = (Event)myEventListView.getItemAtPosition(position);
-                readEvents();
-                EventUtility.addEvent(NewEventsActivity.this, event);
+                /*readEvents();
+                EventUtility.addEvent(NewEventsActivity.this, event);*/
+                Intent detailIntent = new Intent(context, DetailEventActivity.class);
+                detailIntent.putExtra("eventTitle", event.getEventName());
+                detailIntent.putExtra("eventStart", event.getEventStartDate().getTime());
+                detailIntent.putExtra("eventEnd", event.getEventEndDate().getTime());
+                detailIntent.putExtra("eventDesc", event.getEventDescription());
+                startActivity(detailIntent);
                 Log.v(TAG, "Clicked: " + event.getEventName());
             }
         });

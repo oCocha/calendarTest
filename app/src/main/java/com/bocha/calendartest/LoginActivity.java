@@ -95,10 +95,10 @@ public class LoginActivity extends AppCompatActivity {
         new android.os.Handler().postDelayed(
                 new Runnable() {
                     public void run() {
+                        progressDialog.dismiss();
 
                         loginToApp();
 
-                        progressDialog.dismiss();
                     }
                 }, 2000);
     }
