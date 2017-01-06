@@ -24,8 +24,10 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 import com.bocha.calendartest.LoginActivity;
@@ -44,6 +46,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.concurrent.TimeUnit;
 
 public class CalendarActivity extends AppCompatActivity {
@@ -125,23 +128,63 @@ public class CalendarActivity extends AppCompatActivity {
 
             @Override
             public void onLongClickDate(final Date date, View view) {
-                final EditText eventEditText = new EditText(listenerContext);
+                /*
+                LinearLayout layout = new LinearLayout(listenerContext);
+                layout.setOrientation(LinearLayout.VERTICAL);
+
+                final EditText titleBox = new EditText(listenerContext);
+                titleBox.setHint("Title");
+                layout.addView(titleBox);
+
+                final EditText descriptionBox = new EditText(listenerContext);
+                descriptionBox.setHint("Description");
+                layout.addView(descriptionBox);
+
                 AlertDialog dialog = new AlertDialog.Builder(listenerContext)
                         .setTitle("New event")
-                        .setMessage("Accept the event?")
-                        .setView(eventEditText)
+                        .setMessage("Event title")
+                        .setView(layout)
                         .setPositiveButton("Accept", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialog, int which) {
 
-                                addEvent(date, String.valueOf(eventEditText.getText()));
+                                addEvent(date, String.valueOf(titleBox.getText()), String.valueOf(descriptionBox.getText()));
 
                                 //updateUI();
                             }
                         })
                         .setNegativeButton("Decline", null)
                         .create();
-                dialog.show();
+                dialog.show();*/
+
+                final View dialogView = View.inflate(listenerContext, R.layout.item_new_event_dialog, null);
+                final AlertDialog alertDialog = new AlertDialog.Builder(listenerContext).create();
+
+                dialogView.findViewById(R.id.dialog_accept_event).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+
+                        TimePicker startPicker = (TimePicker) dialogView.findViewById(R.id.start_time_picker);
+                        EditText titleBox = (EditText) dialogView.findViewById(R.id.dialog_title_edit);
+                        EditText descBox = (EditText) dialogView.findViewById(R.id.dialog_desc_edit);
+
+                        int hour = startPicker.getCurrentHour();
+                        int minute = startPicker.getCurrentMinute();
+
+                        addEvent(getStartingDate(date, hour, minute), 300000L, String.valueOf(titleBox.getText()), String.valueOf(descBox.getText()));
+
+                        alertDialog.dismiss();
+                    }});
+
+                dialogView.findViewById(R.id.dialog_cancel_event).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View view) {
+
+                        alertDialog.dismiss();
+                    }});
+
+                alertDialog.setView(dialogView);
+                alertDialog.show();
 
                 updateUI();
             }
@@ -156,13 +199,34 @@ public class CalendarActivity extends AppCompatActivity {
         insertEvents();
     }
 
+    private Date getStartingDate(Date date, int hour, int minute) {
+
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+        String dateString = formatter.format(date);
+        Log.v(TAG, "Starting date: "+dateString);
+        String yearString = dateString.substring(0, 4);
+        String monthString = dateString.substring(5, 7);
+        String dayString = dateString.substring(8);
+
+        Calendar calendar = Calendar.getInstance();
+        calendar.clear();
+        calendar.set(Calendar.MONTH, Integer.parseInt(monthString)-1);
+        calendar.set(Calendar.YEAR, Integer.parseInt(yearString));
+        calendar.set(Calendar.DAY_OF_MONTH, Integer.parseInt(dayString));
+        calendar.set(Calendar.HOUR, hour);
+        calendar.set(Calendar.MINUTE, minute);
+        Date startingDate = calendar.getTime();
+
+        return startingDate;
+    }
+
     /**Add the event using the EventUtility class*/
-    private void addEvent(Date date, String eventTitle) {
+    private void addEvent(Date date, Long length, String eventTitle, String eventDescription) {
         //int[] startDate = {2017, 0, 24, 7, 30};
         //int[] endDate = {2017, 0, 24, 14, 30};
         Log.v(TAG, "adding Event: "+date);
 
-        Event event = new Event(date, date, eventTitle, "Descrption for " + eventTitle);
+        Event event = new Event(date.getTime(), date.getTime() + length, eventTitle, eventDescription);
 
         EventUtility.addEvent(CalendarActivity.this, event);
 
@@ -210,7 +274,7 @@ public class CalendarActivity extends AppCompatActivity {
                 final EditText eventEditText = new EditText(context);
                 AlertDialog dialog = new AlertDialog.Builder(context)
                         .setTitle("Update event title")
-                        .setMessage("What should the new event title be?")
+                        .setMessage("New title")
                         .setView(eventEditText)
                         .setPositiveButton("Accept", new DialogInterface.OnClickListener() {
                             @Override

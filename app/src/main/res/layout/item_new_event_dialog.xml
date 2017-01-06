@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:padding="8dp"
+        android:layout_height="match_parent">
+
+        <EditText
+            android:id="@+id/dialog_title_edit"
+            android:hint="@string/title_edit_hint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <EditText
+            android:id="@+id/dialog_desc_edit"
+            android:hint="@string/title_edit_desc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+        <com.bocha.calendartest.utility.TimePicker
+            android:id="@+id/start_time_picker"
+            android:hint="@string/title_edit_start"
+            android:layout_weight="4"
+            android:layout_width="match_parent"
+            android:layout_height="0dp" />
+
+        <Button
+            android:id="@+id/dialog_accept_event"
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:text="Create"
+            android:layout_height="0dp" />
+
+        <Button
+            android:id="@+id/dialog_cancel_event"
+            android:layout_weight="1"
+            android:layout_width="match_parent"
+            android:text="Cancel"
+            android:layout_height="0dp" />
+
+    </LinearLayout>
+
+</ScrollView>
