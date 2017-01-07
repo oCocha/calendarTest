@@ -20,6 +20,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -32,6 +33,7 @@ import com.bocha.calendartest.MainActivity;
 import com.bocha.calendartest.R;
 import com.bocha.calendartest.adapter.eventAdapter;
 import com.bocha.calendartest.data.Event;
+import com.bocha.calendartest.listener.SwipeListener;
 import com.bocha.calendartest.utility.EventUtility;
 
 import java.lang.reflect.Array;
@@ -69,6 +71,31 @@ public class NewEventsActivity extends AppCompatActivity {
         setupNewEventsData();
         setupNewEventsList();
         //setupNewEventsClickListener();
+        setupNewEventsTouchListener();
+    }
+
+    /**Setup a swipeListener on the newEventsList */
+    private void setupNewEventsTouchListener() {
+
+        final SwipeListener swipeListener = new SwipeListener();
+        myEventListView.setOnTouchListener(swipeListener);
+
+        myEventListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+
+            @Override
+            public void onItemClick(AdapterView<?> arg0, View arg1, int position, long arg3) {
+                if (swipeListener.swipeDetected()) {
+                    if (swipeListener.getAction() == SwipeListener.Action.LR) {
+                        //Log.v(TAG, "SWIPE");
+                        onEventDeclined(position);
+                    } else {
+                        Log.v(TAG, "NO SWIPE");
+                    }
+                }
+            }
+        });
+
+
     }
 
     /**Setup an click listener for the listview elements*/

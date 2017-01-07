@@ -8,10 +8,12 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
+    android:descendantFocusability="blocksDescendants"
     tools:context="com.bocha.calendartest.MainActivity">
 
     <ListView
         android:id="@+id/list_new_events"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"></ListView>
+        android:layout_height="wrap_content"
+        android:descendantFocusability="blocksDescendants"></ListView>
 </RelativeLayout>

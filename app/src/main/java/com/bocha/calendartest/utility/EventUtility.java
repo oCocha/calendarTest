@@ -81,13 +81,13 @@ public class EventUtility {
                 tempEvenList.add(cursor.getString(5));
                 tempEvenList.add(cursor.getString(0));
 
-                /**Add the current event to the Arraylist containing all events*/
+                /**Add the current event to the Arraylist that contains all events*/
                 eventList.add(tempEvenList);
                 CNames[i] = cursor.getString(1);
             }
             cursor.moveToNext();
-
         }
+        Log.v(TAG, "events: "+eventList);
         return eventList;
     }
 
@@ -118,47 +118,6 @@ public class EventUtility {
             }
             Uri uri = cr.insert(CalendarContract.Events.CONTENT_URI, eventValues);
         }
-
-
-        /**Update the eventsList*/
-        //updateEventList();
-
-        /**Save all events which collide with the new created event*/
-        //ArrayList<ArrayList> collidingEvents = checkEventCollision((long)eventValues.get(CalendarContract.Events.DTSTART), (long)eventValues.get(CalendarContract.Events.DTEND));
-
-        /**Check whether the user granted the necessary permission to write to the calendar
-         * If the permission has not been granted yet request the permission from the user*/
-        /*if (permissionGrantedWriteCal(activity)) {
-            Log.v(TAG, "Size: " + collidingEvents.size());
-            if (collidingEvents.size() != 0) {
-                String collisionNames = new String();
-                for (int i = 0, j = collidingEvents.size(); i < j; i++) {
-                    collisionNames = collisionNames + " " + collidingEvents.get(i).get(0);
-                }*/
-
-                /**Show an alerdialog to ask the user whether he wants to create the new event*/
-                /*AlertDialog dialog = new AlertDialog.Builder(activity)
-                        .setTitle("New event collides with: " + collisionNames)
-                        .setMessage("Create new event?")
-                        .setPositiveButton("Accept", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
-                                    return;
-                                }
-                                Uri uri = cr.insert(CalendarContract.Events.CONTENT_URI, eventValues);
-                            }
-                        })
-                        .setNegativeButton("Decline", null)
-                        .create();
-                dialog.show();
-            }else{
-                Uri uri = cr.insert(CalendarContract.Events.CONTENT_URI, eventValues);
-                Log.v(TAG,"Event added");
-            }
-        }else{
-            Log.v(TAG, "Permission not granted");
-        }*/
     }
 
     /**Update the eventlist*/

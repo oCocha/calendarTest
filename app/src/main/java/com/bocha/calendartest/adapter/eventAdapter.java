@@ -59,6 +59,9 @@ public class eventAdapter extends ArrayAdapter {
 
         //Set onClicklListener for the Imagebuttons of the layout
         ImageButton acceptButton = (ImageButton) v.findViewById(R.id.new_event_accept_button);
+        acceptButton.setClickable(false);
+        acceptButton.setFocusable(false);
+        acceptButton.setFocusableInTouchMode(false);
         acceptButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 if(context instanceof NewEventsActivity){
@@ -68,6 +71,9 @@ public class eventAdapter extends ArrayAdapter {
         });
 
         ImageButton declineButton = (ImageButton) v.findViewById(R.id.new_event_decline_button);
+        declineButton.setClickable(false);
+        declineButton.setFocusable(false);
+        declineButton.setFocusableInTouchMode(false);
         declineButton.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 if(context instanceof NewEventsActivity){

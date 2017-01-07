@@ -90,6 +90,7 @@ public class LoginActivity extends AppCompatActivity {
         final ProgressDialog progressDialog = new ProgressDialog(LoginActivity.this);
         progressDialog.setIndeterminate(true);
         progressDialog.setMessage("Automatic log in as " + userMail);
+        progressDialog.setCancelable(false);
         progressDialog.show();
 
         new android.os.Handler().postDelayed(
