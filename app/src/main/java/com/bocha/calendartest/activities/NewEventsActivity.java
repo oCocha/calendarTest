@@ -65,9 +65,10 @@ public class NewEventsActivity extends AppCompatActivity {
         setContentView(R.layout.activity_new_events);
         myEventListView = (ListView) findViewById(R.id.list_new_events);
 
+        readEvents();
         setupNewEventsData();
         setupNewEventsList();
-        setupNewEventsClickListener();
+        //setupNewEventsClickListener();
     }
 
     /**Setup an click listener for the listview elements*/
@@ -92,6 +93,29 @@ public class NewEventsActivity extends AppCompatActivity {
         });
     }
 
+    public void onEventAccepted(int position){
+        final Context context = this;
+        Event event = (Event)myEventListView.getItemAtPosition(position);
+
+        Intent detailIntent = new Intent(context, DetailEventActivity.class);
+        detailIntent.putExtra("eventTitle", event.getEventName());
+        detailIntent.putExtra("eventStart", event.getEventStartDate().getTime());
+        detailIntent.putExtra("eventEnd", event.getEventEndDate().getTime());
+        detailIntent.putExtra("eventDesc", event.getEventDescription());
+        startActivity(detailIntent);
+        Log.v(TAG, "Event added "+position);
+    }
+
+    @Override
+    public void onResume(){
+        super.onResume();
+        readEvents();
+    }
+
+    public void onEventDeclined(int position){
+        Log.v(TAG, "Event deleted "+position);
+    }
+
     private void setupNewEventsData() {
         /**Setup the test start date*/
         long tempStartDate1 = 1482561038000L;
@@ -103,9 +127,9 @@ public class NewEventsActivity extends AppCompatActivity {
         /**Setup the test end date*/
         long tempEndDate1 = 1482568238000L;
         //ALTeventEndDate.add(tempEndDate1);
-        long tempEndDate2 = 1482830239000L;
+        long tempEndDate2 = 1482842239000L;
         //ALTeventEndDate.add(tempEndDate2);
-        long tempEndDate3 = 1482216449000L;
+        long tempEndDate3 = 1483317449000L;
         //ALTeventEndDate.add(tempEndDate3);
         /**Setup the test names*/
         eventName.add("Test event 1");
@@ -252,7 +276,7 @@ public class NewEventsActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if(grantResults[0]== PackageManager.PERMISSION_GRANTED){
+        if(grantResults.length > 0 && grantResults[0]== PackageManager.PERMISSION_GRANTED){
             Log.v(TAG,"Permission: "+permissions[0]+ " was "+grantResults[0] + "PERM"+Manifest.permission.READ_CALENDAR);
             //resume tasks needing this permission
             if(permissions[0].equals(Manifest.permission.READ_CALENDAR)){

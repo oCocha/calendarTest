@@ -95,7 +95,9 @@ public class LoginActivity extends AppCompatActivity {
         new android.os.Handler().postDelayed(
                 new Runnable() {
                     public void run() {
-                        progressDialog.dismiss();
+                        if(progressDialog != null && progressDialog.isShowing()){
+                            progressDialog.dismiss();
+                        }
 
                         loginToApp();
 

@@ -9,11 +9,23 @@
         android:padding="8dp"
         android:layout_height="match_parent">
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/new_event_duration_top_margin"
+            android:text="@string/new_event_title"/>
+
         <EditText
             android:id="@+id/dialog_title_edit"
             android:hint="@string/title_edit_hint"
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/new_event_duration_top_margin"
+            android:text="@string/new_event_desc"/>
 
         <EditText
             android:id="@+id/dialog_desc_edit"
@@ -21,12 +33,64 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content" />
 
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/new_event_duration_top_margin"
+            android:text="@string/new_event_starting_date"/>
+
         <com.bocha.calendartest.utility.TimePicker
             android:id="@+id/start_time_picker"
             android:hint="@string/title_edit_start"
             android:layout_weight="4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <TextView
             android:layout_width="match_parent"
-            android:layout_height="0dp" />
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/new_event_duration_top_margin"
+            android:text="@string/new_event_dialog_duration"/>
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:paddingLeft="4.0dip"
+            android:paddingTop="5.0dip"
+            android:paddingRight="4.0dip"
+            android:paddingBottom="1.0dip"
+            android:layout_width="fill_parent" android:layout_height="wrap_content">
+
+            <NumberPicker
+                android:id="@+id/detail_event_hour_picker"
+                android:layout_width="0.0dip" android:layout_height="wrap_content"
+                android:layout_weight="1.0"
+                android:layout_marginRight="@dimen/new_event_picker_margin"
+                android:layout_marginLeft="@dimen/new_event_picker_margin"/>
+
+            <TextView
+                android:layout_width="0.0dip"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.0"
+                android:layout_gravity="center_vertical"
+                android:layout_marginLeft="@dimen/new_event_hour_margin"
+                android:text="@string/new_event_dialog_hour"/>
+
+            <NumberPicker
+                android:id="@+id/detail_event_minute_picker"
+                android:layout_width="0.0dip" android:layout_height="wrap_content"
+                android:layout_weight="1.0"
+                android:layout_marginRight="@dimen/new_event_picker_margin"
+                android:layout_marginLeft="@dimen/new_event_picker_margin"/>
+
+            <TextView
+                android:layout_width="0.0dip"
+                android:layout_height="wrap_content"
+                android:layout_weight="1.0"
+                android:layout_gravity="center_vertical"
+                android:layout_marginLeft="@dimen/new_event_hour_margin"
+                android:text="@string/new_event_dialog_minute"/>
+
+        </LinearLayout>
 
         <Button
             android:id="@+id/dialog_accept_event"

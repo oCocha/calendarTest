@@ -12,24 +12,43 @@
         android:textSize="20sp" />
 
     <TextView
-        android:id="@+id/new_event_start"
+        android:id="@+id/new_event_date"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Start"
         android:layout_below="@+id/new_event_title" />
 
     <TextView
-        android:id="@+id/new_event_end"
+        android:id="@+id/new_event_time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="End"
-        android:layout_below="@+id/new_event_title"
-        android:layout_toRightOf="@+id/new_event_start" />
+        android:layout_below="@+id/new_event_date" />
 
     <TextView
         android:id="@+id/new_event_description"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Done"
-        android:layout_below="@+id/new_event_start" />
+        android:layout_below="@+id/new_event_time" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_above="@+id/new_event_description"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:id="@+id/new_event_accept_button"
+        android:src="@drawable/accept_button_icon" />
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/new_event_accept_button"
+        android:layout_toLeftOf="@+id/new_event_accept_button"
+        android:layout_toStartOf="@+id/new_event_accept_button"
+        android:layout_marginRight="15dp"
+        android:layout_marginEnd="15dp"
+        android:id="@+id/new_event_decline_button"
+        android:src="@drawable/decline_button_icon" />
 </RelativeLayout>

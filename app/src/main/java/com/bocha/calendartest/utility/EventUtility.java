@@ -50,7 +50,7 @@ public class EventUtility {
      */
     public static ArrayList<ArrayList> readCalendarEvent(Context context) {
         /**Clear the eventList if it is not null*/
-        if(eventList != null){
+        if (eventList != null) {
             eventList.clear();
         }
 
@@ -72,7 +72,7 @@ public class EventUtility {
             /**Checks whether the given event is the wanted kind of event id
              * 1: event
              * 3: holiday*/
-            if(Integer.parseInt(cursor.getString(0)) == returnEventId){
+            if (Integer.parseInt(cursor.getString(0)) == returnEventId) {
                 ArrayList<String> tempEvenList = new ArrayList<String>();
                 tempEvenList.add(cursor.getString(1));
                 tempEvenList.add(cursor.getString(3));
@@ -93,7 +93,7 @@ public class EventUtility {
 
     public static String getDate(long milliSeconds) {
         SimpleDateFormat formatter = new SimpleDateFormat(
-                "dd/MM/yyyy hh:mm:ss a");
+                "dd/MM/yyyy HH:mm:ss a");
         Calendar calendar = Calendar.getInstance();
         calendar.setTimeInMillis(milliSeconds);
         return formatter.format(calendar.getTime());
@@ -108,28 +108,36 @@ public class EventUtility {
         /**Save the event data in a final variable*/
         final ContentValues eventValues = extractEventData(event);
 
-        Log.v(TAG, "eventValues: "+eventValues);
+        Log.v(TAG, "eventValues: " + eventValues);
 
         final ContentResolver cr = activity.getContentResolver();
+
+        if (permissionGrantedWriteCal(activity)) {
+            if (ActivityCompat.checkSelfPermission(activity, Manifest.permission.WRITE_CALENDAR) != PackageManager.PERMISSION_GRANTED) {
+                return;
+            }
+            Uri uri = cr.insert(CalendarContract.Events.CONTENT_URI, eventValues);
+        }
+
 
         /**Update the eventsList*/
         //updateEventList();
 
         /**Save all events which collide with the new created event*/
-        ArrayList<ArrayList> collidingEvents = checkEventCollision((long)eventValues.get(CalendarContract.Events.DTSTART), (long)eventValues.get(CalendarContract.Events.DTEND));
+        //ArrayList<ArrayList> collidingEvents = checkEventCollision((long)eventValues.get(CalendarContract.Events.DTSTART), (long)eventValues.get(CalendarContract.Events.DTEND));
 
         /**Check whether the user granted the necessary permission to write to the calendar
          * If the permission has not been granted yet request the permission from the user*/
-        if (permissionGrantedWriteCal(activity)) {
+        /*if (permissionGrantedWriteCal(activity)) {
             Log.v(TAG, "Size: " + collidingEvents.size());
             if (collidingEvents.size() != 0) {
                 String collisionNames = new String();
                 for (int i = 0, j = collidingEvents.size(); i < j; i++) {
                     collisionNames = collisionNames + " " + collidingEvents.get(i).get(0);
-                }
+                }*/
 
                 /**Show an alerdialog to ask the user whether he wants to create the new event*/
-                AlertDialog dialog = new AlertDialog.Builder(activity)
+                /*AlertDialog dialog = new AlertDialog.Builder(activity)
                         .setTitle("New event collides with: " + collisionNames)
                         .setMessage("Create new event?")
                         .setPositiveButton("Accept", new DialogInterface.OnClickListener() {
@@ -150,7 +158,7 @@ public class EventUtility {
             }
         }else{
             Log.v(TAG, "Permission not granted");
-        }
+        }*/
     }
 
     /**Update the eventlist*/
@@ -198,22 +206,24 @@ public class EventUtility {
     private static ContentValues extractEventData(Event event) {
         /**Save the data which is necessary to create a new event*/
         long calID = 1;
-        long startMillis;
-        long endMillis;
-        Calendar beginTime = null;
-        beginTime = Calendar.getInstance();
-        //beginTime.set(event.getEventStartDate()[0], event.getEventStartDate()[1], event.getEventStartDate()[2], event.getEventStartDate()[3], event.getEventStartDate()[4]);
-        startMillis = event.getEventStartDate().getTime();
-        Calendar endTime = Calendar.getInstance();
-        //endTime.set(event.getEventEndDate()[0], event.getEventEndDate()[1], event.getEventEndDate()[2], event.getEventEndDate()[3], event.getEventEndDate()[4]);
-        endMillis = event.getEventEndDate().getTime();
+        long startMillis = event.getEventStartDate().getTime();
+        long endMillis = event.getEventEndDate().getTime();
+        String eventName = event.getEventName();
+        if(eventName.equals("")){
+            eventName= "Title";
+        }
+
+        String eventDescription = event.getEventDescription();
+        if(eventDescription.equals("")){
+            eventDescription = "Description";
+        }
 
         /**Create new ContentValues containing the event data*/
         ContentValues values = new ContentValues();
         values.put(CalendarContract.Events.DTSTART, startMillis);
         values.put(CalendarContract.Events.DTEND, endMillis);
-        values.put(CalendarContract.Events.TITLE, event.getEventName());
-        values.put(CalendarContract.Events.DESCRIPTION, event.getEventDescription());
+        values.put(CalendarContract.Events.TITLE, eventName);
+        values.put(CalendarContract.Events.DESCRIPTION, eventDescription);
         values.put(CalendarContract.Events.CALENDAR_ID, calID);
         values.put(CalendarContract.Events.EVENT_TIMEZONE, "Europe/Berlin");
 
@@ -365,4 +375,55 @@ public class EventUtility {
     private void setReturnEventId(Integer i){
         returnEventId = i;
     }
+
+
+    /**Convert a start and an end date in milliseconds to
+     * a string array containing a date and a time string
+     * format: dd/MM/yyyy
+     * format: hh:mm
+     *
+     * @param startMillis starting date in milliseconds
+     * @param endMillis ending date in milliseconds
+     * @return string array
+     */
+    public static String[] calculateDate(Long startMillis, Long endMillis) {
+        String[] dateData = new String[2];
+        String startString = millisToDate(startMillis);
+        String endString = millisToDate(endMillis);
+        String date1 = startString.split(" ")[0];
+        String date2 = endString.split(" ")[0];
+        String time1 = startString.split(" ")[1];
+        String time2 = endString.split(" ")[1];
+        String dateString;
+        String timeString;
+
+
+        if(date1.equals(date2)){
+            dateString = date1;
+        }else{
+            dateString = date1 + " - " + date2;
+        }
+
+        timeString = time1 + " - " +time2;
+
+        dateData[0] = dateString;
+        dateData[1] = timeString;
+
+        return dateData;
+    }
+
+    /**Convert a milliseconds date to a String date
+     * format: dd/MM/yyyy hh:mm a
+     *
+     * @param milliSeconds date in milliseconds
+     * @return date in String
+     */
+    private static String millisToDate(Long milliSeconds) {
+        SimpleDateFormat formatter = new SimpleDateFormat(
+                "dd/MM/yyyy HH:mm a");
+        Calendar calendar = Calendar.getInstance();
+        calendar.setTimeInMillis(milliSeconds);
+        return formatter.format(calendar.getTime());
+    }
+
 }

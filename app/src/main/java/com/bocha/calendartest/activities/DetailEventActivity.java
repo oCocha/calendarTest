@@ -1,6 +1,7 @@
 package com.bocha.calendartest.activities;
 
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -12,7 +13,9 @@ import com.bocha.calendartest.R;
 import com.bocha.calendartest.data.Event;
 import com.bocha.calendartest.utility.EventUtility;
 
+import java.lang.reflect.Array;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 
 /**
@@ -27,6 +30,7 @@ public class DetailEventActivity extends AppCompatActivity {
     private TextView startTextView;
     private TextView endTextView;
     private TextView descTextView;
+    private TextView collideTextView;
 
     private Button acceptButton;
     private Button denyButton;
@@ -45,14 +49,35 @@ public class DetailEventActivity extends AppCompatActivity {
         startTextView = (TextView) findViewById(R.id.detail_event_start);
         endTextView = (TextView) findViewById(R.id.detail_event_end);
         descTextView = (TextView) findViewById(R.id.detail_event_description);
+        collideTextView = (TextView) findViewById(R.id.detail_event_colliding);
 
         acceptButton = (Button) findViewById(R.id.detail_event_allow_button);
         denyButton = (Button) findViewById(R.id.detail_event_deny_button);
 
         getIntentData();
         setIntentData();
+        checkForEventCollision();
         setListener();
 
+    }
+
+    private void checkForEventCollision() {
+        ArrayList<ArrayList> collidingEvents = EventUtility.checkEventCollision(eventStart, eventEnd);
+
+        if(collidingEvents.size() != 0){
+            collideTextView.setTextColor(Color.RED);
+            collideTextView.setText(getCollEventsString(collidingEvents));
+        }
+    }
+
+    private String getCollEventsString(ArrayList<ArrayList> collidingEvents) {
+        String collEventsString = "The new event collides with:\n";
+
+        for(int i = 0, j = collidingEvents.size(); i < j; i++){
+            collEventsString += "  - " + collidingEvents.get(i).get(0);
+        }
+
+        return collEventsString;
     }
 
     private void setListener() {
@@ -72,8 +97,8 @@ public class DetailEventActivity extends AppCompatActivity {
     }
 
     private void addEvent() {
-        Event event = new Event(eventStart, eventStart, eventTitle, eventDescription);
-
+        Event event = new Event(eventStart, eventEnd, eventTitle, eventDescription);
+        Log.v(TAG, "Add event");
         EventUtility.addEvent(DetailEventActivity.this, event);
 
         finish();
@@ -81,17 +106,11 @@ public class DetailEventActivity extends AppCompatActivity {
 
     private void setIntentData() {
         titleTextView.setText(eventTitle);
-        startTextView.setText(millisToDate(eventStart));
-        endTextView.setText(millisToDate(eventEnd));
-        descTextView.setText(eventDescription);
-    }
 
-    private String millisToDate(Long milliSeconds) {
-        SimpleDateFormat formatter = new SimpleDateFormat(
-                "dd/MM/yyyy hh:mm:ss a");
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(milliSeconds);
-        return formatter.format(calendar.getTime());
+        String[] dateData = EventUtility.calculateDate(eventStart, eventEnd);
+        startTextView.setText(dateData[0]);
+        endTextView.setText(dateData[1]);
+        descTextView.setText(eventDescription);
     }
 
     private void getIntentData() {

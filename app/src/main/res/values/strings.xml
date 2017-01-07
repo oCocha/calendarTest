@@ -9,8 +9,14 @@
     <string name="event_detail_accept">Accept</string>
     <string name="event_detail_deny">Deny</string>
     <string name="event_detail_eventtitle">Title</string>
-    <string name="title_edit_hint">Title</string>
-    <string name="title_edit_desc">Description</string>
+    <string name="title_edit_hint">Enter title</string>
+    <string name="title_edit_desc">Enter description</string>
     <string name="title_edit_end">Ending time</string>
     <string name="title_edit_start">Starting time</string>
+    <string name="new_event_dialog_duration">Event duration</string>
+    <string name="new_event_starting_date">Starting date</string>
+    <string name="new_event_desc">Description</string>
+    <string name="new_event_title">Title</string>
+    <string name="new_event_dialog_hour">h</string>
+    <string name="new_event_dialog_minute">min</string>
 </resources>

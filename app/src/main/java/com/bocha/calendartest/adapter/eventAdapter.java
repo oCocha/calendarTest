@@ -2,14 +2,20 @@ package com.bocha.calendartest.adapter;
 
 import android.content.ClipData;
 import android.content.Context;
+import android.content.Intent;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import com.bocha.calendartest.R;
+import com.bocha.calendartest.activities.DetailEventActivity;
+import com.bocha.calendartest.activities.NewEventsActivity;
 import com.bocha.calendartest.data.Event;
+import com.bocha.calendartest.utility.EventUtility;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -20,22 +26,26 @@ import java.util.Date;
  */
 
 public class eventAdapter extends ArrayAdapter {
-    ArrayList<Event> events;
+    private final String TAG = "ArrayAdapter";
+
+    private ArrayList<Event> events;
+    private Context context;
 
     SimpleDateFormat formatter;
 
     public eventAdapter(Context context, int eventId, int titleId, int descId, ArrayList<Event> events){
         super(context, eventId, events);
         this.events = events;
+        this.context = context;
 
-        formatter = new SimpleDateFormat("dd MMM yyyy hh : mm");
+        formatter = new SimpleDateFormat("dd MMM yyyy HH : mm");
     }
 
     /*
 	 * we are overriding the getView method here - this is what defines how each
 	 * list item will look.
 	 */
-    public View getView(int position, View convertView, ViewGroup parent){
+    public View getView(final int position, final View convertView, ViewGroup parent){
 
         // assign the view we are converting to a local variable
         View v = convertView;
@@ -46,6 +56,25 @@ public class eventAdapter extends ArrayAdapter {
             LayoutInflater inflater = (LayoutInflater) getContext().getSystemService(Context.LAYOUT_INFLATER_SERVICE);
             v = inflater.inflate(R.layout.item_new_event, null);
         }
+
+        //Set onClicklListener for the Imagebuttons of the layout
+        ImageButton acceptButton = (ImageButton) v.findViewById(R.id.new_event_accept_button);
+        acceptButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                if(context instanceof NewEventsActivity){
+                    ((NewEventsActivity)context).onEventAccepted(position);
+                }
+            }
+        });
+
+        ImageButton declineButton = (ImageButton) v.findViewById(R.id.new_event_decline_button);
+        declineButton.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                if(context instanceof NewEventsActivity){
+                    ((NewEventsActivity)context).onEventDeclined(position);
+                }
+            }
+        });
 
 		/*
 		 * Recall that the variable position is sent in as an argument to this method.
@@ -63,8 +92,11 @@ public class eventAdapter extends ArrayAdapter {
 
             TextView tt = (TextView) v.findViewById(R.id.new_event_title);
             TextView td = (TextView) v.findViewById(R.id.new_event_description);
-            TextView ts = (TextView) v.findViewById(R.id.new_event_start);
-            TextView te = (TextView) v.findViewById(R.id.new_event_end);
+            TextView ts = (TextView) v.findViewById(R.id.new_event_date);
+            TextView te = (TextView) v.findViewById(R.id.new_event_time);
+
+            //Get the date and the time data as strings.
+            String[] dateData = EventUtility.calculateDate(i.getEventStartDate().getTime(), i.getEventEndDate().getTime());
 
             // check to see if each individual textview is null.
             // if not, assign some text!
@@ -75,10 +107,10 @@ public class eventAdapter extends ArrayAdapter {
                 td.setText(i.getEventDescription());
             }
             if (ts != null){
-                ts.setText(dateToString(i.getEventStartDate()));
+                ts.setText(dateData[0]);
             }
             if (te != null){
-                te.setText(" - " + dateToString(i.getEventEndDate()));
+                te.setText(dateData[1]);
             }
         }
 

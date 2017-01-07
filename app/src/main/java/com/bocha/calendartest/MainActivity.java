@@ -77,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /**Delay when adding a new event to the calendar
+    /** Delay when adding a new event to the calendar
      * -> The list doesnt update correctly sometimes*/
     private void updateUI() {
         readEvents();
@@ -88,6 +88,7 @@ public class MainActivity extends AppCompatActivity {
             for (int i = 0, l = eventList.size(); i < l; i++) {
                 taskList.add((String) eventList.get(i).get(0));
             }
+            Log.v(TAG, "TaskList: "+taskList);
             if (myAdapter == null) {
                 myAdapter = new ArrayAdapter<>(this,
                         R.layout.item_event,

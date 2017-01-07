@@ -26,6 +26,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.NumberPicker;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
@@ -36,6 +37,7 @@ import com.bocha.calendartest.R;
 import com.bocha.calendartest.adapter.eventAdapter;
 import com.bocha.calendartest.data.Event;
 import com.bocha.calendartest.utility.EventUtility;
+import com.bocha.calendartest.utility.MiscUtility;
 import com.bocha.calendartest.views.ExpandedListView;
 import com.roomorama.caldroid.CaldroidFragment;
 import com.roomorama.caldroid.CaldroidListener;
@@ -77,7 +79,7 @@ public class CalendarActivity extends AppCompatActivity {
         myEventListView = (ExpandedListView) findViewById(R.id.list_event_calendar);
         eventTextView = (TextView) findViewById(R.id.event_textView);
 
-        formatter = new SimpleDateFormat("dd MMM yyyy hh : mm");
+        formatter = new SimpleDateFormat("dd MMM yyyy HH : mm");
 
         // Setup caldroid fragment
         // **** If you want normal CaldroidFragment, use below line ****
@@ -128,37 +130,14 @@ public class CalendarActivity extends AppCompatActivity {
 
             @Override
             public void onLongClickDate(final Date date, View view) {
-                /*
-                LinearLayout layout = new LinearLayout(listenerContext);
-                layout.setOrientation(LinearLayout.VERTICAL);
-
-                final EditText titleBox = new EditText(listenerContext);
-                titleBox.setHint("Title");
-                layout.addView(titleBox);
-
-                final EditText descriptionBox = new EditText(listenerContext);
-                descriptionBox.setHint("Description");
-                layout.addView(descriptionBox);
-
-                AlertDialog dialog = new AlertDialog.Builder(listenerContext)
-                        .setTitle("New event")
-                        .setMessage("Event title")
-                        .setView(layout)
-                        .setPositiveButton("Accept", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-
-                                addEvent(date, String.valueOf(titleBox.getText()), String.valueOf(descriptionBox.getText()));
-
-                                //updateUI();
-                            }
-                        })
-                        .setNegativeButton("Decline", null)
-                        .create();
-                dialog.show();*/
 
                 final View dialogView = View.inflate(listenerContext, R.layout.item_new_event_dialog, null);
                 final AlertDialog alertDialog = new AlertDialog.Builder(listenerContext).create();
+
+                /**Setup the numberpicker for the event duration*/
+                final NumberPicker hourPicker = (NumberPicker) dialogView.findViewById(R.id.detail_event_hour_picker);
+                final NumberPicker minutePicker = (NumberPicker) dialogView.findViewById(R.id.detail_event_minute_picker);
+                setupNumberPickers(hourPicker, minutePicker);
 
                 dialogView.findViewById(R.id.dialog_accept_event).setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -168,10 +147,13 @@ public class CalendarActivity extends AppCompatActivity {
                         EditText titleBox = (EditText) dialogView.findViewById(R.id.dialog_title_edit);
                         EditText descBox = (EditText) dialogView.findViewById(R.id.dialog_desc_edit);
 
-                        int hour = startPicker.getCurrentHour();
-                        int minute = startPicker.getCurrentMinute();
+                        int startHour = startPicker.getCurrentHour();
+                        int startMinute = startPicker.getCurrentMinute();
 
-                        addEvent(getStartingDate(date, hour, minute), 300000L, String.valueOf(titleBox.getText()), String.valueOf(descBox.getText()));
+                        int durationHour = hourPicker.getValue();
+                        int durationMinute = minutePicker.getValue();
+
+                        addEvent(MiscUtility.getStartingDate(date, startHour, startMinute), MiscUtility.getDurationMillis(durationHour, durationMinute), String.valueOf(titleBox.getText()), String.valueOf(descBox.getText()));
 
                         alertDialog.dismiss();
                     }});
@@ -199,25 +181,31 @@ public class CalendarActivity extends AppCompatActivity {
         insertEvents();
     }
 
-    private Date getStartingDate(Date date, int hour, int minute) {
+    /**Setup the hour and the minute picker to display the according numbers
+     *
+     * @param hourPicker
+     * @param minutePicker
+     */
+    private void setupNumberPickers(NumberPicker hourPicker, NumberPicker minutePicker) {
+        String[] hours = new String[24];
+        for(int i=0; i<hours.length; i++)
+            hours[i] = Integer.toString(i);
 
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
-        String dateString = formatter.format(date);
-        Log.v(TAG, "Starting date: "+dateString);
-        String yearString = dateString.substring(0, 4);
-        String monthString = dateString.substring(5, 7);
-        String dayString = dateString.substring(8);
+        hourPicker.setMinValue(1);
+        hourPicker.setMaxValue(24);
+        hourPicker.setWrapSelectorWheel(true);
+        hourPicker.setDisplayedValues(hours);
+        hourPicker.setValue(1);
 
-        Calendar calendar = Calendar.getInstance();
-        calendar.clear();
-        calendar.set(Calendar.MONTH, Integer.parseInt(monthString)-1);
-        calendar.set(Calendar.YEAR, Integer.parseInt(yearString));
-        calendar.set(Calendar.DAY_OF_MONTH, Integer.parseInt(dayString));
-        calendar.set(Calendar.HOUR, hour);
-        calendar.set(Calendar.MINUTE, minute);
-        Date startingDate = calendar.getTime();
+        String[] minutes = new String[60];
+        for(int i=0; i<minutes.length; i++)
+            minutes[i] = Integer.toString(i);
 
-        return startingDate;
+        minutePicker.setMinValue(1);
+        minutePicker.setMaxValue(60);
+        minutePicker.setWrapSelectorWheel(true);
+        minutePicker.setDisplayedValues(minutes);
+        minutePicker.setValue(1);
     }
 
     /**Add the event using the EventUtility class*/
@@ -295,22 +283,37 @@ public class CalendarActivity extends AppCompatActivity {
         });
     }
 
+    /**Show event data in a textview below the calendar widget
+     *
+     * @param position Positon of the event to display in the eventlist
+     */
     private void showEventData(int position) {
         ArrayList<String> clickedEvent = eventList.get(position);
         String eventInfo = "" + clickedEvent.get(0) + "\n";
-        eventInfo += "" + formatter.format(new Date(Long.parseLong(clickedEvent.get(1)))) + " - " + formatter.format(new Date(Long.parseLong(clickedEvent.get(2)))) + "\n";
+
+        String[] dateData = EventUtility.calculateDate(Long.parseLong(clickedEvent.get(1)), Long.parseLong(clickedEvent.get(2)));
+        eventInfo += dateData[0] + "\n";
+        eventInfo += dateData[1] + "\n";
         eventInfo += "" + clickedEvent.get(3) + "\n";
 
         eventTextView.setText(eventInfo);
     }
 
+    /**Show event data in a textview below the calendar widget
+     *
+     * @param eventList Arraylist containing the events to display
+     */
     private void showEventsData(ArrayList<ArrayList> eventList) {
-        ArrayList<String> clickedEvent = new ArrayList<>();
+        ArrayList<String> clickedEvent;
         String eventsInfo = new String();
         for(int i = 0, j = eventList.size(); i < j; i++){
             clickedEvent = eventList.get(i);
             eventsInfo += "" + clickedEvent.get(0) + "\n";
-            eventsInfo += "" + formatter.format(new Date(Long.parseLong(clickedEvent.get(1)))) + " - " + formatter.format(new Date(Long.parseLong(clickedEvent.get(2)))) + "\n";
+
+            String[] dateData = EventUtility.calculateDate(Long.parseLong(clickedEvent.get(1)), Long.parseLong(clickedEvent.get(2)));
+            eventsInfo += dateData[0] + "\n";
+            eventsInfo += dateData[1] + "\n";
+
             eventsInfo += "" + clickedEvent.get(3) + "\n" + "\n";
         }
 
