@@ -75,6 +75,7 @@ public class NewEventsActivity extends AppCompatActivity {
     }
 
     /**Setup a swipeListener on the newEventsList */
+    /**Setup a swipeListener on the newEventsList */
     private void setupNewEventsTouchListener() {
 
         final SwipeListener swipeListener = new SwipeListener();

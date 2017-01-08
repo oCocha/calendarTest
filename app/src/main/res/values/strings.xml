@@ -4,7 +4,7 @@
     <string name="show_dialog">Show_dialog</string>
     <string name="undo">Undo</string>
     <string name="event_detail_question">Accept the event?</string>
-    <string name="event_detail_startdate">Startdatum</string>
+    <string name="event_detail_startdate">Date</string>
     <string name="event_detail_enddate">Enddatum</string>
     <string name="event_detail_accept">Accept</string>
     <string name="event_detail_deny">Deny</string>
@@ -19,4 +19,7 @@
     <string name="new_event_title">Title</string>
     <string name="new_event_dialog_hour">h</string>
     <string name="new_event_dialog_minute">min</string>
+    <string name="event_detail_description">Description</string>
+    <string name="event_detail_event_collisions_hint">Event collisions</string>
+    <string name="event_detail_event_collisions">No colliding events</string>
 </resources>

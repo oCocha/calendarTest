@@ -205,7 +205,7 @@ public class CalendarActivity extends AppCompatActivity {
         minutePicker.setMaxValue(60);
         minutePicker.setWrapSelectorWheel(true);
         minutePicker.setDisplayedValues(minutes);
-        minutePicker.setValue(1);
+        minutePicker.setValue(31);
     }
 
     /**Add the event using the EventUtility class*/
@@ -219,6 +219,7 @@ public class CalendarActivity extends AppCompatActivity {
         EventUtility.addEvent(CalendarActivity.this, event);
 
         updateUI();
+        insertEvents();
     }
 
     /**Check whether the clicked date contains any events and return the matches*/
@@ -336,6 +337,7 @@ public class CalendarActivity extends AppCompatActivity {
             if (caldroidFragment != null) {
                 ColorDrawable eventDrawable = new ColorDrawable(Color.RED);
                 caldroidFragment.setBackgroundDrawableForDate(eventDrawable, eventDate);
+                caldroidFragment.refreshView();
             }
         }
     }
@@ -405,6 +407,7 @@ public class CalendarActivity extends AppCompatActivity {
                         EventUtility.deleteEventById(context, eventId);
 
                         updateUI();
+                        insertEvents();
                     }
                 })
                 .setNegativeButton("Decline", null)

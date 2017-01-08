@@ -328,6 +328,10 @@ public class EventUtility {
     }
 
     /**Set the type of events that should be returned in the readCalendarEvent function
+     *  0:
+     *  1: event/Termin
+     *  2: birthday
+     *  3: Feiertag
      *
      * @param i type of the event to be returned
      */

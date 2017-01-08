@@ -9,64 +9,85 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical">
 
-    <TextView
-        android:id="@+id/detail_event_title"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:text="@string/event_detail_eventtitle"
-        android:textSize="20sp" />
+        <TextView
+            android:id="@+id/detail_event_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:text="@string/event_detail_eventtitle"
+            android:textSize="20sp" />
     </RelativeLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
-        android:layout_marginTop="24dp">
-    <TextView
-        android:id="@+id/detail_event_start"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/event_detail_startdate"/>
+        android:layout_marginTop="6dp"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/detail_event_start_hint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:text="@string/event_detail_startdate"/>
+        <TextView
+            android:id="@+id/detail_event_start"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/event_detail_startdate"/>
     </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
-        android:layout_marginTop="12dp"
-        android:layout_marginBottom="24dp">
-    <TextView
-        android:id="@+id/detail_event_end"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/event_detail_enddate"/>
+        android:layout_marginTop="6dp"
+        android:layout_marginBottom="6dp">
+        <TextView
+            android:id="@+id/detail_event_end"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/event_detail_enddate"/>
     </LinearLayout>
 
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
-        android:layout_marginBottom="24dp">
-    <TextView
-        android:id="@+id/detail_event_description"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Description"/>
-    </RelativeLayout>
+        android:layout_marginBottom="6dp"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/detail_event_description_hint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:text="@string/event_detail_description"/>
+        <TextView
+            android:id="@+id/detail_event_description"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/event_detail_description"/>
+    </LinearLayout>
 
-    <RelativeLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
-        android:layout_marginBottom="24dp">
+        android:layout_marginBottom="6dp"
+        android:orientation="vertical">
+        <TextView
+            android:id="@+id/detail_event_colliding_hint"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:text="@string/event_detail_event_collisions_hint"/>
         <TextView
             android:id="@+id/detail_event_colliding"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="No colliding events."/>
-    </RelativeLayout>
+            android:text="@string/event_detail_event_collisions"/>
+    </LinearLayout>
 
     <RelativeLayout
         android:layout_width="fill_parent"
@@ -78,7 +99,7 @@
             android:id="@+id/TextView01"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:paddingTop="24dip"
+            android:paddingTop="6dp"
             />
 
         <LinearLayout

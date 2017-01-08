@@ -71,10 +71,10 @@ public class DetailEventActivity extends AppCompatActivity {
     }
 
     private String getCollEventsString(ArrayList<ArrayList> collidingEvents) {
-        String collEventsString = "The new event collides with:\n";
+        String collEventsString = "";
 
         for(int i = 0, j = collidingEvents.size(); i < j; i++){
-            collEventsString += "  - " + collidingEvents.get(i).get(0);
+            collEventsString += "  - " + collidingEvents.get(i).get(0) + "\n";
         }
 
         return collEventsString;
