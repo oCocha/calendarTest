@@ -351,6 +351,9 @@ public class CalendarActivity extends AppCompatActivity {
 
         if (eventList != null) {
             for (int i = 0, l = eventList.size(); i < l; i++) {
+                if(Integer.parseInt((String)eventList.get(i).get(6)) != 0) {
+                    Log.v(TAG, "Event: " + eventList.get(i).get(0) + "  deleted: " + eventList.get(i).get(6));
+                }
                 taskList.add((String) eventList.get(i).get(0));
             }
             if (myAdapter == null) {

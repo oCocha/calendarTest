@@ -58,7 +58,7 @@ public class EventUtility {
                 .query(
                         Uri.parse("content://com.android.calendar/events"),
                         new String[]{"calendar_id", "title", "description",
-                                "dtstart", "dtend", "eventLocation"}, null,
+                                "dtstart", "dtend", "eventLocation", "deleted"}, null,
                         null, null);
         cursor.moveToFirst();
 
@@ -69,10 +69,12 @@ public class EventUtility {
          * format: title, startTime, endTime, description, location, calID
          */
         for (int i = 0; i < CNames.length; i++) {
-            /**Checks whether the given event is the wanted kind of event id
+            /**Checks whether the given event is the wanted kind of event id and
+             * if the event is already marked to be deleted(deleted == 0)
+             *
              * 1: event
              * 3: holiday*/
-            if (Integer.parseInt(cursor.getString(0)) == returnEventId) {
+            if (Integer.parseInt(cursor.getString(0)) == returnEventId && Integer.parseInt(cursor.getString(6)) == 0) {
                 ArrayList<String> tempEvenList = new ArrayList<String>();
                 tempEvenList.add(cursor.getString(1));
                 tempEvenList.add(cursor.getString(3));
@@ -80,10 +82,13 @@ public class EventUtility {
                 tempEvenList.add(cursor.getString(2));
                 tempEvenList.add(cursor.getString(5));
                 tempEvenList.add(cursor.getString(0));
+                tempEvenList.add(cursor.getString(6));
 
                 /**Add the current event to the Arraylist that contains all events*/
                 eventList.add(tempEvenList);
                 CNames[i] = cursor.getString(1);
+            }else if(Integer.parseInt(cursor.getString(6)) != 0){
+                Log.v(TAG, "EVENT WIRD GELÖSCHTTTTTTTTTTTTTTTTT: "+ cursor.getString(1)+" ---- "+cursor.getString(6));
             }
             cursor.moveToNext();
         }
